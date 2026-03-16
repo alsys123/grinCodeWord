@@ -1,0 +1,35 @@
+on Ubuntu/Mac/pc to use a server:
+
+using python:
+
+alias pys='python3 -m http.server 8080'
+
+or just run:
+python3 -m http.server 8080
+
+python3 -m http.server 8080 --bind 0.0.0.0  ... lan access
+
+
+git clone git@github.com:alsys123/grinCodeWord.git
+
+
+_____
+find local net address:
+
+$ ipconfig getifaddr en0
+
+10.0.0.199
+
+_____
+To test on other net machines:
+
+10.0.0.199:8080
+
+==========
+public site with latest release:  
+
+https://sites.google.com/view/grinCodeWord/Main
+
+Entry point is:
+
+"https://alsys123.github.io/grinCodeWord/index.html"
