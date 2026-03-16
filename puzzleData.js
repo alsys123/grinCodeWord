@@ -110,7 +110,7 @@ const solutionMap =
 
 const hintPairs = 
 [
-  { number: 14, letter: "E" },
-  { number: 20, letter: "S" }
+  { number: 4, letter: "Z" },
+  { number: 16, letter: "W" }
 ];
 
