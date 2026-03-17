@@ -57,17 +57,18 @@ function showAlert() {
     }, 2000);
 }
 
-    function createCanvas() {
-      const canvas = document.createElement('canvas');
-      canvas.width = 100;
-      canvas.height = 100;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#fffdf7';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.lineWidth = 6;
-      ctx.lineCap = 'round';
-      ctx.strokeStyle = '#000000';
-      return { canvas, ctx };
+function createCanvas() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 100;
+    canvas.height = 100;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fffdf7';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.lineWidth = 6;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#000000';
+    return { canvas, ctx };
+    
     }
 
     function createCell(number) {
@@ -120,7 +121,10 @@ function showAlert() {
         }
       }
 
-      applyStarters();
+	applyStarters();
+
+	buildAlphabetBar();
+
     }
 
 function applyStarters() {
@@ -131,10 +135,22 @@ function applyStarters() {
             target.starter = true;
             target.recognized = true;
 	    propagateLetter(target.number, h.letter); // NEW
+
+	    markAlphabetUsed(h.letter);
+
         }
     });
 
     hintEl.textContent = `Hints: ${hintPairs[0].number} = ${hintPairs[0].letter}   ${hintPairs[1].number} = ${hintPairs[1].letter}`;
+
+    
+    // here i am ?????
+    
+    // TEST JOINER
+    const cellA = cells[23].cell;
+    const cellB = cells[24].cell;
+    drawJoiner(cellA, cellB);
+
 } //applyStarters
 
 
@@ -549,29 +565,88 @@ function propagateLetter(number, letter) {
       `;
     }
   });
+
+    markAlphabetUsed(letter);
+
 }//propagateLetter
 
 function propagateClear(number) {
+
+    handleAlphabetAfterClear(number);
+
+    // Clear all grid cells with this number
+    cells.forEach(cd => {
+	if (cd.number === number && !cd.starter) {
+	    clearCell(cd);
+	    cd.recognized = false;
+	}
+    });
+
+    // Clear all key cells with this number
+    const keyCells = [...keyTop.children, ...keyBottom.children];
+    keyCells.forEach(div => {
+	const num = parseInt(div.querySelector('.number-label').textContent);
+	if (num === number) {
+	    div.innerHTML = `
+        <div class="number-label">${num}</div>
+      `;
+	}
+    });
+
+
+}//propagateClear
+
+function handleAlphabetAfterClear(number) {
+    let letter = null;
+
+    // Look for the letter in the key bars
+    const keyCells = [...keyTop.children, ...keyBottom.children];
+    keyCells.forEach(div => {
+        const num = parseInt(div.querySelector('.number-label').textContent);
+
+        if (num === number) {
+            const letterDiv = div.querySelector('.letter');
+            if (letterDiv) {
+                letter = letterDiv.textContent.trim().toUpperCase();
+            }
+        }
+    });
+
+    // If we found a letter, uncross it
+    if (letter) {
+        markAlphabetUnused(letter);
+    }
+}
+
+/*
+function propagateClear(number) {
+  let clearedLetter = null;
+
   // Clear all grid cells with this number
   cells.forEach(cd => {
     if (cd.number === number && !cd.starter) {
+      if (cd.recognizedLetter) clearedLetter = cd.recognizedLetter;
       clearCell(cd);
       cd.recognized = false;
+      cd.recognizedLetter = null;
     }
   });
 
-  // Clear all key cells with this number
+  // Clear key cells
   const keyCells = [...keyTop.children, ...keyBottom.children];
   keyCells.forEach(div => {
     const num = parseInt(div.querySelector('.number-label').textContent);
     if (num === number) {
-      div.innerHTML = `
-        <div class="number-label">${num}</div>
-      `;
+      div.innerHTML = `<div class="number-label">${num}</div>`;
     }
   });
-}//propagateClear
 
+  // If we know which letter was cleared, uncross it
+  if (clearedLetter) {
+    markAlphabetUnused(clearedLetter.toUpperCase());
+  }
+}
+*/
 function preprocessForOCR(canvas) {
   const temp = document.createElement("canvas");
   temp.width = 100;
@@ -592,3 +667,64 @@ function preprocessForOCR(canvas) {
 
   return temp;
 }//preprocessForOCR
+
+function buildAlphabetBar() {
+  const bar = document.getElementById('alphabetBar');
+  bar.innerHTML = '';
+
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+  alphabet.forEach(letter => {
+    const div = document.createElement('div');
+    div.className = 'alpha-letter';
+    div.dataset.letter = letter;
+    div.textContent = letter;
+    bar.appendChild(div);
+  });
+}//buildAlphabetBar
+
+function markAlphabetUsed(letter) {
+  const div = document.querySelector(`.alpha-letter[data-letter="${letter}"]`);
+  if (div) div.classList.add('used');
+}
+
+function markAlphabetUnused(letter) {
+
+    const div = document.querySelector(`.alpha-letter[data-letter="${letter}"]`);
+
+    if (div) div.classList.remove('used');
+}
+
+function isLetterStillUsed(letter) {
+  return cells.some(cd =>
+    cd.recognized &&
+    solutionMap[cd.number] === letter
+  );
+}
+
+function drawJoiner(cellA, cellB) {
+    const rectA = cellA.getBoundingClientRect();
+    const rectB = cellB.getBoundingClientRect();
+    const wrapperRect = gridWrapper.getBoundingClientRect();
+
+    const x1 = rectA.left + rectA.width / 2 - wrapperRect.left;
+    const y1 = rectA.top + rectA.height / 2 - wrapperRect.top;
+    const x2 = rectB.left + rectB.width / 2 - wrapperRect.left;
+    const y2 = rectB.top + rectB.height / 2 - wrapperRect.top;
+
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const length = Math.sqrt(dx*dx + dy*dy);
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+    const div = document.createElement('div');
+    div.className = 'joiner';
+    div.style.width = `${length}px`;
+    div.style.height = `4px`;        // thickness
+    div.style.left = `${x1}px`;
+    div.style.top = `${y1 - 2}px`;   // center vertically
+    div.style.transform = `rotate(${angle}deg)`;
+    div.style.transformOrigin = '0 50%';
+
+    joinerLayer.appendChild(div);
+}

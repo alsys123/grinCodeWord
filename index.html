@@ -12,12 +12,13 @@
 
 </head>
 <body>
+  
   <div class="wrapper">
 
     <div id="alert">LETTER NOT RECOGNIZED — TRY AGAIN</div>
 
     <h1>Codeword Handwriting Puzzle</h1>
-
+    
     <div id="grid" class="grid"></div>
 
     <div class="hint" id="hintText"></div>
@@ -26,14 +27,25 @@
     <div id="keyBottom" class="key-grid"></div>
 
     <button id="checkBtn">Check Answers</button>
-<button id="fillAllBtn">Fill All Answers</button>
+
+    <button id="fillAllBtn">Fill All Answers</button>
 
     <div class="status" id="status">
       Write a letter in any white square. Double‑tap a letter to clear it.
     </div>
+
+    <div id="alphabetBar"></div>
+
   </div>
 
   <div id="ocrSpinner" class="spinner" style="display:none;"></div>
+
+   
+  <div id="gridWrapper">
+      <div id="grid"></div>
+      <div id="joinerLayer"></div>
+    </div>
+
 
   <script src="https://unpkg.com/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
 
