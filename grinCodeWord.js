@@ -224,7 +224,7 @@ function showAlert() {
       window.addEventListener('touchcancel', end);
     }
     
-    async function recognizeLetter() {
+    async function recognizeCell() {
   if (!hasInk) return;
 
   statusEl.textContent = 'Recognizing letter...';
