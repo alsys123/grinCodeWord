@@ -130,6 +130,7 @@ function applyStarters() {
             placeLetter(target, h.letter, true);
             target.starter = true;
             target.recognized = true;
+	    propagateLetter(target.number, h.letter); // NEW
         }
     });
 
@@ -137,20 +138,21 @@ function applyStarters() {
 } //applyStarters
 
 
-    function setupDoubleTap(cellData) {
-      const handler = () => {
+function setupDoubleTap(cellData) {
+    const handler = () => {
         const now = Date.now();
         if (now - cellData.lastTap < 280) {
-          if (cellData.recognized && !cellData.starter) {
-            clearCell(cellData);
-          }
+            if (cellData.recognized && !cellData.starter) {
+//		clearCell(cellData);
+		        propagateClear(cellData.number);
+            }
         }
         cellData.lastTap = now;
-      };
+    };
 
-      cellData.cell.addEventListener('touchend', handler);
-      cellData.cell.addEventListener('click', handler);
-    }
+    cellData.cell.addEventListener('touchend', handler);
+    cellData.cell.addEventListener('click', handler);
+}//setupDoubleTap
 
     function clearCell(cellData) {
       const { number, cell } = cellData;
@@ -227,94 +229,102 @@ function applyStarters() {
 
 
 async function recognizeCell(cellData) {
-      if (cellData.recognized) return;
+    if (cellData.recognized) return;
 
-      const { canvas } = cellData;
-      const ctx = canvas.getContext('2d');
-      const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const { canvas } = cellData;
+    const ctx = canvas.getContext('2d');
+    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-      let hasInk = false;
-      for (let i = 0; i < img.data.length; i += 4) {
+    let hasInk = false;
+    for (let i = 0; i < img.data.length; i += 4) {
         if (img.data[i] < 250 || img.data[i+1] < 250 || img.data[i+2] < 250) {
-          hasInk = true;
-          break;
+            hasInk = true;
+            break;
         }
-      }
-      if (!hasInk) return;
+    }
+    if (!hasInk) return;
 
-      statusEl.textContent = 'Recognizing letter...';
+    statusEl.textContent = 'Recognizing letter...';
 
     showSpinner();   // <--- NEW
     
-      try {
-        const result = await Tesseract.recognize(canvas, 'eng', {
-          tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-        });
+    try {
+	const processed = preprocessForOCR(canvas);
+	const result =
+	      await Tesseract.recognize(processed,
+					'eng',
+					{tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'});
+
+//        const result = await Tesseract.recognize(canvas, 'eng', {
+//            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+//        });
 
         let text = (result.data.text || '').trim();
         if (text.length > 1) text = text[0];
         if (!text) {
-//          showAlert();
+	    //          showAlert();
 	    showAlertWithDrawing(canvas);
             statusEl.textContent = 'Could not recognize.';
 	    clearCell(cellData);   // <-- add this
 	    
-          return;
+            return;
         }
 
         const letter = text.toUpperCase();
         if (!/^[A-Z]$/.test(letter)) {
- //         showAlert();
+	    //         showAlert();
 	    showAlertWithDrawing(canvas);
             statusEl.textContent = 'Only letters allowed.';
 	    clearCell(cellData);   // <-- add this
 	    
-          return;
+            return;
         }
 
-          placeLetter(cellData, letter, false);
-          cellData.recognized = true;
-          statusEl.textContent = `Recognized: "${letter}"`;
-	  
-      } catch (err) {
-          console.error(err);
-//          showAlert();
-	  showAlertWithDrawing(canvas);
-          statusEl.textContent = 'Error during recognition.';
-	  clearCell(cellData);   // <-- add this
-	        
-      } finally {
-	  hideSpinner();   // <--- NEW
-      }
+        placeLetter(cellData, letter, false);
+	propagateLetter(cellData.number, letter);
+
+        cellData.recognized = true;
+        statusEl.textContent = `Recognized: "${letter}"`;
+	
+    } catch (err) {
+        console.error(err);
+	//          showAlert();
+	showAlertWithDrawing(canvas);
+        statusEl.textContent = 'Error during recognition.';
+	clearCell(cellData);   // <-- add this
+	
+    } finally {
+	hideSpinner();   // <--- NEW
     }
+}//recognizeCell
 
 function placeLetter(cellData, letter, isStarter) {
-      const { cell, number } = cellData;
-      cell.innerHTML = '';
+    const { cell, number } = cellData;
+    cell.innerHTML = '';
 
-      const numberLabel = document.createElement('div');
-      numberLabel.className = 'number-label';
-      numberLabel.textContent = number;
-      cell.appendChild(numberLabel);
+    const numberLabel = document.createElement('div');
+    numberLabel.className = 'number-label';
+    numberLabel.textContent = number;
+    cell.appendChild(numberLabel);
 
-      const letterDiv = document.createElement('div');
-      letterDiv.className = 'letter';
-      if (isStarter) letterDiv.classList.add('starter');
-      letterDiv.textContent = letter;
-      cell.appendChild(letterDiv);
-    }
+    const letterDiv = document.createElement('div');
+    letterDiv.className = 'letter';
+    if (isStarter) letterDiv.classList.add('starter');
+    letterDiv.textContent = letter;
+    cell.appendChild(letterDiv);
+}//placeLetter
 
 
-    function createKeyRows() {
-      for (let i = 1; i <= 13; i++) {
+function createKeyRows() {
+    for (let i = 1; i <= 13; i++) {
         const cd = createCell(i);
         keyTop.appendChild(cd.cell);
-      }
-      for (let i = 14; i <= 26; i++) {
+    }
+    for (let i = 14; i <= 26; i++) {
         const cd = createCell(i);
         keyBottom.appendChild(cd.cell);
-      }
     }
+}//createKeyRows
 
 // 1-13 key
 function positionKeyTop() {
@@ -331,7 +341,7 @@ function positionKeyTop() {
   kt.style.position = "absolute";
 
     // Position: right side of wrapper
-  kt.style.left = (wrapper.offsetWidth - kt.offsetWidth - 30) + "px";
+  kt.style.left = (wrapper.offsetWidth - kt.offsetWidth - 50) + "px";
 
   // Position: top of wrapper
   kt.style.top = "45px";
@@ -352,7 +362,7 @@ function positionKeyBottom() {
   kb.style.position = "absolute";
 
   // Position: right side of wrapper
-  kb.style.left = (wrapper.offsetWidth - kb.offsetWidth +10) + "px";
+  kb.style.left = (wrapper.offsetWidth - kb.offsetWidth -10) + "px";
 
   // Position: top of wrapper (adjust as needed)
   kb.style.top = "45px";
@@ -518,3 +528,67 @@ function fillAllAnswers() {
 }//fillAllAnswers
 
 document.getElementById("fillAllBtn").addEventListener("click", fillAllAnswers);
+
+function propagateLetter(number, letter) {
+  // Fill all grid cells with this number
+  cells.forEach(cd => {
+    if (cd.number === number && !cd.starter) {
+      placeLetter(cd, letter, true);
+      cd.recognized = true;
+    }
+  });
+
+  // Fill all key cells with this number
+  const keyCells = [...keyTop.children, ...keyBottom.children];
+  keyCells.forEach(div => {
+    const num = parseInt(div.querySelector('.number-label').textContent);
+    if (num === number) {
+      div.innerHTML = `
+        <div class="number-label">${num}</div>
+        <div class="letter starter">${letter}</div>
+      `;
+    }
+  });
+}//propagateLetter
+
+function propagateClear(number) {
+  // Clear all grid cells with this number
+  cells.forEach(cd => {
+    if (cd.number === number && !cd.starter) {
+      clearCell(cd);
+      cd.recognized = false;
+    }
+  });
+
+  // Clear all key cells with this number
+  const keyCells = [...keyTop.children, ...keyBottom.children];
+  keyCells.forEach(div => {
+    const num = parseInt(div.querySelector('.number-label').textContent);
+    if (num === number) {
+      div.innerHTML = `
+        <div class="number-label">${num}</div>
+      `;
+    }
+  });
+}//propagateClear
+
+function preprocessForOCR(canvas) {
+  const temp = document.createElement("canvas");
+  temp.width = 100;
+  temp.height = 100;
+  const tctx = temp.getContext("2d");
+
+  // Draw original
+  tctx.drawImage(canvas, 0, 0);
+
+  // Increase contrast
+  const img = tctx.getImageData(0, 0, 100, 100);
+  const data = img.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const v = data[i] < 200 ? 0 : 255;
+    data[i] = data[i+1] = data[i+2] = v;
+  }
+  tctx.putImageData(img, 0, 0);
+
+  return temp;
+}//preprocessForOCR
