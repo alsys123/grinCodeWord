@@ -223,7 +223,66 @@ function showAlert() {
       window.addEventListener('touchend', end);
       window.addEventListener('touchcancel', end);
     }
+    
+    async function recognizeLetter() {
+  if (!hasInk) return;
 
+  statusEl.textContent = 'Recognizing letter...';
+
+  const progressContainer = document.getElementById('progress-container');
+  const progressBar = document.getElementById('progress-bar');
+
+  progressContainer.style.display = 'block';
+  progressBar.style.width = '0%';
+
+  const startTime = Date.now();
+  const minDuration = 2000; // 2 seconds minimum
+
+  // Fake progress animation while Tesseract works
+  let fakeProgress = 0;
+  const interval = setInterval(() => {
+    fakeProgress = Math.min(fakeProgress + 3, 90); 
+    progressBar.style.width = fakeProgress + '%';
+  }, 100);
+
+  try {
+    const result = await Tesseract.recognize(canvas, 'eng', {
+      tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+    });
+
+    // Ensure minimum 2 seconds
+    const elapsed = Date.now() - startTime;
+    if (elapsed < minDuration) {
+      await new Promise(res => setTimeout(res, minDuration - elapsed));
+    }
+
+    clearInterval(interval);
+    progressBar.style.width = '100%';
+
+    let text = (result.data.text || '').trim();
+    if (text.length > 1) text = text[0];
+
+    if (!text) {
+      showAlertWithDrawing(canvas);
+      statusEl.textContent = 'Could not recognize.';
+      clearCell(cellData);
+      progressContainer.style.display = 'none';
+      return;
+    }
+
+    statusEl.textContent = 'Recognized: ' + text;
+    progressContainer.style.display = 'none';
+    return text;
+
+  } catch (err) {
+    clearInterval(interval);
+    progressContainer.style.display = 'none';
+    statusEl.textContent = 'Error during recognition.';
+    console.error(err);
+  }
+}
+/*
+..below out
     async function recognizeCell(cellData) {
       if (cellData.recognized) return;
 
@@ -278,7 +337,7 @@ function showAlert() {
 	  clearCell(cellData);   // <-- add this
       }
     }
-
+*/
     function placeLetter(cellData, letter, isStarter) {
       const { cell, number } = cellData;
       cell.innerHTML = '';
