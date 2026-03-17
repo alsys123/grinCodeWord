@@ -105,10 +105,13 @@
     }
 
     .hint {
-      margin-top: 10px;
       font-size: 13px;
       text-align: center;
       font-weight: 500;
+      top: 10px;
+      right: 10px;
+      margin-top: 0;
+      position: absolute;
     }
 
     .key-grid {
@@ -120,13 +123,13 @@
     }
 
     #checkBtn {
-      margin-top: 15px;
+      margin-top: 0px;
       width: 100px;
-      padding: 10px;
+      padding: 0px;
       background: #0077cc;
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 3px;
       font-size: 15px;
       cursor: pointer;
       font-weight: 600;
@@ -134,6 +137,7 @@
       top: 10px;
       left: 10px;
       z-index: 999;
+      height: 40px;
     }
 
     #checkBtn:hover {
@@ -147,3 +151,27 @@
       text-align: center;
     }
  
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid #ccc;
+  border-top-color: #333;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+#keyBottom {
+  position: absolute;
+  z-index: 50;
+}
+#keyTop {
+  position: absolute;
+  z-index: 50;
+}

@@ -20,28 +20,14 @@
     <div id="keyBottom" class="key-grid"></div>
 
     <button id="checkBtn">Check Answers</button>
+<button id="fillAllBtn">Fill All Answers</button>
 
     <div class="status" id="status">
       Write a letter in any white square. Double‑tap a letter to clear it.
     </div>
   </div>
-  
-<div id="progress-container" style="
-  width: 180px;
-  height: 8px;
-  background: #ddd;
-  border-radius: 4px;
-  overflow: hidden;
-  display: none;
-  margin-top: 6px;
-">
-  <div id="progress-bar" style="
-    height: 100%;
-    width: 0%;
-    background: #4caf50;
-    transition: width 0.1s linear;
-  "></div>
-</div>
+
+  <div id="ocrSpinner" class="spinner" style="display:none;"></div>
 
   <script src="https://unpkg.com/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
 

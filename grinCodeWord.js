@@ -123,18 +123,19 @@ function showAlert() {
       applyStarters();
     }
 
-    function applyStarters() {
-      hintPairs.forEach(h => {
+function applyStarters() {
+    hintPairs.forEach(h => {
         const target = cells.find(cd => cd.number === h.number && !cd.starter);
         if (target) {
-          placeLetter(target, h.letter, true);
-          target.starter = true;
-          target.recognized = true;
+            placeLetter(target, h.letter, true);
+            target.starter = true;
+            target.recognized = true;
         }
-      });
+    });
 
-      hintEl.textContent = `Hints: ${hintPairs[0].number} = ${hintPairs[0].letter}   ${hintPairs[1].number} = ${hintPairs[1].letter}`;
-    }
+    hintEl.textContent = `Hints: ${hintPairs[0].number} = ${hintPairs[0].letter}   ${hintPairs[1].number} = ${hintPairs[1].letter}`;
+} //applyStarters
+
 
     function setupDoubleTap(cellData) {
       const handler = () => {
@@ -223,67 +224,9 @@ function showAlert() {
       window.addEventListener('touchend', end);
       window.addEventListener('touchcancel', end);
     }
-    
-    async function recognizeCell() {
-  if (!hasInk) return;
 
-  statusEl.textContent = 'Recognizing letter...';
 
-  const progressContainer = document.getElementById('progress-container');
-  const progressBar = document.getElementById('progress-bar');
-
-  progressContainer.style.display = 'block';
-  progressBar.style.width = '0%';
-
-  const startTime = Date.now();
-  const minDuration = 2000; // 2 seconds minimum
-
-  // Fake progress animation while Tesseract works
-  let fakeProgress = 0;
-  const interval = setInterval(() => {
-    fakeProgress = Math.min(fakeProgress + 3, 90); 
-    progressBar.style.width = fakeProgress + '%';
-  }, 100);
-
-  try {
-    const result = await Tesseract.recognize(canvas, 'eng', {
-      tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-    });
-
-    // Ensure minimum 2 seconds
-    const elapsed = Date.now() - startTime;
-    if (elapsed < minDuration) {
-      await new Promise(res => setTimeout(res, minDuration - elapsed));
-    }
-
-    clearInterval(interval);
-    progressBar.style.width = '100%';
-
-    let text = (result.data.text || '').trim();
-    if (text.length > 1) text = text[0];
-
-    if (!text) {
-      showAlertWithDrawing(canvas);
-      statusEl.textContent = 'Could not recognize.';
-      clearCell(cellData);
-      progressContainer.style.display = 'none';
-      return;
-    }
-
-    statusEl.textContent = 'Recognized: ' + text;
-    progressContainer.style.display = 'none';
-    return text;
-
-  } catch (err) {
-    clearInterval(interval);
-    progressContainer.style.display = 'none';
-    statusEl.textContent = 'Error during recognition.';
-    console.error(err);
-  }
-}
-/*
-..below out
-    async function recognizeCell(cellData) {
+async function recognizeCell(cellData) {
       if (cellData.recognized) return;
 
       const { canvas } = cellData;
@@ -301,6 +244,8 @@ function showAlert() {
 
       statusEl.textContent = 'Recognizing letter...';
 
+    showSpinner();   // <--- NEW
+    
       try {
         const result = await Tesseract.recognize(canvas, 'eng', {
           tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
@@ -312,7 +257,8 @@ function showAlert() {
 //          showAlert();
 	    showAlertWithDrawing(canvas);
             statusEl.textContent = 'Could not recognize.';
-	      clearCell(cellData);   // <-- add this
+	    clearCell(cellData);   // <-- add this
+	    
           return;
         }
 
@@ -321,7 +267,8 @@ function showAlert() {
  //         showAlert();
 	    showAlertWithDrawing(canvas);
             statusEl.textContent = 'Only letters allowed.';
-	      clearCell(cellData);   // <-- add this
+	    clearCell(cellData);   // <-- add this
+	    
           return;
         }
 
@@ -335,10 +282,13 @@ function showAlert() {
 	  showAlertWithDrawing(canvas);
           statusEl.textContent = 'Error during recognition.';
 	  clearCell(cellData);   // <-- add this
+	        
+      } finally {
+	  hideSpinner();   // <--- NEW
       }
     }
-*/
-    function placeLetter(cellData, letter, isStarter) {
+
+function placeLetter(cellData, letter, isStarter) {
       const { cell, number } = cellData;
       cell.innerHTML = '';
 
@@ -354,6 +304,7 @@ function showAlert() {
       cell.appendChild(letterDiv);
     }
 
+
     function createKeyRows() {
       for (let i = 1; i <= 13; i++) {
         const cd = createCell(i);
@@ -365,7 +316,60 @@ function showAlert() {
       }
     }
 
-    function checkAnswers() {
+// 1-13 key
+function positionKeyTop() {
+  const kt = document.getElementById("keyTop");
+  const wrapper = document.querySelector(".wrapper");
+
+  // Make vertical
+  kt.style.display = "grid";
+  kt.style.gridTemplateColumns = "40px";   // 1 column
+  kt.style.gridAutoRows = "40px";
+  kt.style.gap = "3px";
+
+  // Anchor inside wrapper
+  kt.style.position = "absolute";
+
+    // Position: right side of wrapper
+  kt.style.left = (wrapper.offsetWidth - kt.offsetWidth - 30) + "px";
+
+  // Position: top of wrapper
+  kt.style.top = "45px";
+}
+
+//14-26 key
+function positionKeyBottom() {
+  const kb = document.getElementById("keyBottom");
+  const wrapper = document.querySelector(".wrapper");
+
+  // Make it vertical
+  kb.style.display = "grid";
+  kb.style.gridTemplateColumns = "40px";   // 1 column
+  kb.style.gridAutoRows = "40px";          // vertical stack
+  kb.style.gap = "3px";
+
+  // Anchor inside wrapper
+  kb.style.position = "absolute";
+
+  // Position: right side of wrapper
+  kb.style.left = (wrapper.offsetWidth - kb.offsetWidth +10) + "px";
+
+  // Position: top of wrapper (adjust as needed)
+  kb.style.top = "45px";
+}
+
+window.addEventListener("load", () => {
+  positionKeyTop();
+  positionKeyBottom();
+});
+
+window.addEventListener("resize", () => {
+  positionKeyTop();
+  positionKeyBottom();
+});
+
+
+function checkAnswers() {
       cells.forEach(cd => {
         if (!cd.recognized || cd.starter) return;
 
@@ -414,7 +418,7 @@ function showAlertWithDrawing(canvas) {
 }//showAlertWithDrawing
 
 
-    checkBtn.addEventListener('click', checkAnswers);
+checkBtn.addEventListener('click', checkAnswers);
 
     createGrid();
     createKeyRows();
@@ -469,10 +473,11 @@ function positionCheckButton() {
 
     btn.style.position = "absolute";
 
-  if (w < 600) {
+    // desktop
+  if (w > 900 && h > 650) {
     // phones
-    btn.style.top = "10px";
-    btn.style.left = "10px";
+    btn.style.top = "8px";
+    btn.style.left = "15px";
   } else if (w < 1000) {
     // tablets
     btn.style.top = "10px";
@@ -488,3 +493,28 @@ function positionCheckButton() {
 
 window.addEventListener("resize", positionCheckButton);
 positionCheckButton();
+
+function showSpinner() {
+  document.getElementById("ocrSpinner").style.display = "inline-block";
+}
+
+function hideSpinner() {
+  document.getElementById("ocrSpinner").style.display = "none";
+}
+
+function fillAllAnswers() {
+    for (const cellData of cells) {
+	if (cellData.number && !cellData.isBlack && !cellData.starter) {
+	    //    if (cellData.number && !cellData.isBlack) {
+	    const correctLetter = solutionMap[cellData.number];
+	    if (correctLetter) {
+		placeLetter(cellData, correctLetter, true);
+		cellData.recognized = true;
+	    }
+	}
+    }
+    
+    statusEl.textContent = "All answers filled.";
+}//fillAllAnswers
+
+document.getElementById("fillAllBtn").addEventListener("click", fillAllAnswers);
