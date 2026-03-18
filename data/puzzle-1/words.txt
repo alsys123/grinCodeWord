@@ -34,7 +34,7 @@ quit
 undo
 item
 zombie
-lawayer
+lawyer
 ado
 boxing
 throbs
@@ -49,6 +49,7 @@ rap
 kit
 eke
 ten
+easels
 eft
 static
 felony
