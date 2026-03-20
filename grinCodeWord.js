@@ -446,9 +446,14 @@ function showAlertWithDrawing(canvas) {
 
 checkBtn.addEventListener('click', checkAnswers);
 
-    createGrid();
-    createKeyRows();
- 
+
+loadPuzzle(1);
+//loadPuzzle(Math.floor(Math.random() * totalPuzzles) + 1); // random version
+
+//createGrid();
+//createKeyRows();
+
+
 function positionAlert() {
   const w = window.innerWidth;
   const h = window.innerHeight;
@@ -727,4 +732,22 @@ function drawJoiner(cellA, cellB) {
     div.style.transformOrigin = '0 50%';
 
     joinerLayer.appendChild(div);
+}
+
+function loadPuzzle(id) {
+    const puzzle = PUZZLES[id];
+    if (!puzzle) {
+	console.error("Puzzle not found:", id);
+	return;
+    }
+
+    gridNumbers = puzzle.grid;
+    solutionMap = puzzle.solution;
+    hintPairs = puzzle.hints;
+
+    createGrid();
+    createKeyRows();
+
+    //  buildGrid();
+    //  applyStarters();
 }
