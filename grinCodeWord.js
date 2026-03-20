@@ -16,7 +16,7 @@ const rows = 13;
 
 /*
     const gridNumbers = [
-      [0,5,12,8,0,3,19,3,0,8,12,5,0],
+    [0,5,12,8,0,3,19,3,0,8,12,5,0],
       [7,0,21,0,14,0,9,0,14,0,21,0,7],
       [10,18,0,4,0,22,1,22,0,4,0,18,10],
       [0,0,16,0,11,0,6,0,11,0,16,0,0],
@@ -103,38 +103,45 @@ function createCanvas() {
       return cellData;
     }
 
-    function createGrid() {
-      for (let r = 0; r < rows; r++) {
+function createGrid() {
+
+//    grid.innerHTML = ""; // clear out any old one if it exists
+
+    
+    for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
-          const num = gridNumbers[r][c];
-
-          if (num === 0) {
-            const black = document.createElement('div');
-            black.className = 'cell black';
-            gridEl.appendChild(black);
-            continue;
-          }
-
-          const cd = createCell(num);
-          gridEl.appendChild(cd.cell);
-          cells.push(cd);
+            const num = gridNumbers[r][c];
+	    
+            if (num === 0) {
+		const black = document.createElement('div');
+		black.className = 'cell black';
+		gridEl.appendChild(black);
+		continue;
+            }
+	    
+            const cd = createCell(num);
+            gridEl.appendChild(cd.cell);
+            cells.push(cd);
         }
-      }
-
-	applyStarters();
-
-	buildAlphabetBar();
-
     }
+    
+    applyStarters();
+    
+    buildAlphabetBar();
+    
+}//createGrid
 
 function applyStarters() {
     hintPairs.forEach(h => {
-        const target = cells.find(cd => cd.number === h.number && !cd.starter);
+//        const target = cells.find(cd => cd.number === h.number && !cd.starter);
+	const target = cells.find(cd => cd.number === h.number);
+
         if (target) {
             placeLetter(target, h.letter, true);
             target.starter = true;
             target.recognized = true;
-	    propagateLetter(target.number, h.letter); // NEW
+
+	    propagateLetter(target.number, h.letter, true); // NEW
 
 	    markAlphabetUsed(h.letter);
 
@@ -243,7 +250,7 @@ function setupDoubleTap(cellData) {
       window.addEventListener('touchcancel', end);
     }
 
-
+/*
 async function recognizeCell(cellData) {
     if (cellData.recognized) return;
 
@@ -313,6 +320,113 @@ async function recognizeCell(cellData) {
 	hideSpinner();   // <--- NEW
     }
 }//recognizeCell
+*/
+
+async function recognizeCell(cellData) {
+    if (cellData.recognized) return;
+
+    const { canvas } = cellData;
+    const ctx = canvas.getContext('2d');
+    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    // Check for ink
+    let hasInk = false;
+    for (let i = 0; i < img.data.length; i += 4) {
+        if (img.data[i] < 250 || img.data[i+1] < 250 || img.data[i+2] < 250) {
+            hasInk = true;
+            break;
+        }
+    }
+    if (!hasInk) return;
+
+    statusEl.textContent = 'Recognizing letter...';
+    showSpinner();
+
+    try {
+        const processed = preprocessForOCR(canvas);
+
+        const result = await Tesseract.recognize(
+            processed,
+            'eng',
+            { tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+	      classify_enable_learning: 1,
+              classify_enable_adaptive_matcher: 1,
+              tessedit_enable_dict: 1
+	    }
+        );
+
+        // Extract symbol data
+        const symbols = result.data.symbols;
+        const sym = symbols && symbols[0];
+
+	console.log("SYMBOL:", sym);
+	console.log("CHOICES:", sym.choices);
+	console.log("ALTERNATES:", sym.alternates);
+	console.log("PROPERTIES:", sym.properties);
+	
+        if (!sym) {
+            showAlertWithDrawing(canvas);
+            statusEl.textContent = 'Could not recognize.';
+            clearCell(cellData);
+            return;
+        }
+
+        // Primary guess
+        const primary = sym.text.toUpperCase();
+	
+	if (!/^[A-Z]$/.test(primary)) {
+            showAlertWithDrawing(canvas);
+            statusEl.textContent = 'Only letters allowed.';
+            clearCell(cellData);
+            return;
+        }
+	
+	
+        // Alternate guesses
+        let alternatives = [];
+        if (sym.choices && sym.choices.length > 1) {
+            alternatives = sym.choices
+                .map(c => ({
+                    letter: c.text.toUpperCase(),
+                    conf: c.confidence
+                }))
+                .filter(c => /^[A-Z]$/.test(c.letter));
+        }
+
+        // Display guesses in status bar
+        showAlternateGuesses(primary, alternatives);
+
+        // Apply letter to grid + key
+        placeLetter(cellData, primary, false);
+        propagateLetter(cellData.number, primary);
+
+        cellData.recognized = true;
+
+    } catch (err) {
+        console.error(err);
+        showAlertWithDrawing(canvas);
+        statusEl.textContent = 'Error during recognition.';
+        clearCell(cellData);
+
+    } finally {
+        hideSpinner();
+    }
+}
+
+function showAlternateGuesses(primary, alternatives) {
+    if (!alternatives || alternatives.length === 0) {
+        statusEl.textContent = `Recognized: ${primary}`;
+        return;
+    }
+
+    // Format: A (92%), H (40%), R (22%)
+    const guessList = alternatives
+        .slice(0, 3)
+        .map(c => `${c.letter} (${Math.round(c.conf)}%)`)
+        .join(', ');
+
+    statusEl.textContent = `Recognized: ${primary}. Other guesses: ${guessList}`;
+}
 
 function placeLetter(cellData, letter, isStarter) {
     const { cell, number } = cellData;
@@ -447,7 +561,7 @@ function showAlertWithDrawing(canvas) {
 checkBtn.addEventListener('click', checkAnswers);
 
 
-loadPuzzle(1);
+//loadPuzzle(1);
 //loadPuzzle(Math.floor(Math.random() * totalPuzzles) + 1); // random version
 
 //createGrid();
@@ -534,45 +648,74 @@ function hideSpinner() {
 }
 
 function fillAllAnswers() {
+
     for (const cellData of cells) {
-	if (cellData.number && !cellData.isBlack && !cellData.starter) {
-	    //    if (cellData.number && !cellData.isBlack) {
-	    const correctLetter = solutionMap[cellData.number];
-	    if (correctLetter) {
-		placeLetter(cellData, correctLetter, true);
-		cellData.recognized = true;
-	    }
-	}
+        if (cellData.number && !cellData.isBlack) {
+
+            const correctLetter = solutionMap[cellData.number];
+            if (!correctLetter) continue;
+
+            // Is this number one of the hints?
+            const isStarter = hintPairs.some(h => h.number === cellData.number);
+
+            // Do NOT overwrite hint cells
+            if (cellData.starter) continue;
+
+            // Fill grid cell
+            placeLetter(cellData, correctLetter, isStarter);
+            cellData.recognized = true;
+        }
     }
-    
+
     statusEl.textContent = "All answers filled.";
+
+    // Fill the answer key
+    const keyCells = [...keyTop.children, ...keyBottom.children];
+    
+    keyCells.forEach(div => {
+	const num = parseInt(div.querySelector('.number-label').textContent);
+	if (num > 0) {
+            const correctLetter = solutionMap[num];
+            if (correctLetter) {
+		const isStarter = hintPairs.some(h => h.number === num);
+		div.innerHTML = `
+                <div class="number-label">${num}</div>
+                <div class="letter ${isStarter ? 'starter' : ''}">${correctLetter}</div>
+            `;
+//was                <div class="letter starter">${correctLetter}</div>
+            }
+	}
+    });
+    
 }//fillAllAnswers
 
 document.getElementById("fillAllBtn").addEventListener("click", fillAllAnswers);
 
-function propagateLetter(number, letter) {
-  // Fill all grid cells with this number
-  cells.forEach(cd => {
-    if (cd.number === number && !cd.starter) {
-      placeLetter(cd, letter, true);
-      cd.recognized = true;
-    }
-  });
-
-  // Fill all key cells with this number
-  const keyCells = [...keyTop.children, ...keyBottom.children];
-  keyCells.forEach(div => {
-    const num = parseInt(div.querySelector('.number-label').textContent);
-    if (num === number) {
-      div.innerHTML = `
+function propagateLetter(number, letter, isStarter = false) {
+    // Fill all grid cells with this number
+    cells.forEach(cd => {
+	if (cd.number === number && !cd.starter) {
+	    placeLetter(cd, letter,  isStarter);
+	    cd.recognized = true;
+	}
+    });
+    
+    // Fill all key cells with this number
+    const keyCells = [...keyTop.children, ...keyBottom.children];
+    keyCells.forEach(div => {
+	const num = parseInt(div.querySelector('.number-label').textContent);
+	if (num === number) {
+	    div.innerHTML = `
         <div class="number-label">${num}</div>
-        <div class="letter starter">${letter}</div>
+        <div class="letter ${isStarter ? 'starter' : ''}">${letter}</div>
       `;
-    }
-  });
+//was        <div class="letter starter">${letter}</div>
 
+	}
+    });
+    
     markAlphabetUsed(letter);
-
+    
 }//propagateLetter
 
 function propagateClear(number) {
@@ -735,19 +878,55 @@ function drawJoiner(cellA, cellB) {
 }
 
 function loadPuzzle(id) {
+//    populatePuzzleSelector();
+//    document.getElementById('puzzleSelector').value = "1";
+//    loadPuzzle(1);
+
     const puzzle = PUZZLES[id];
     if (!puzzle) {
 	console.error("Puzzle not found:", id);
 	return;
     }
 
+    
     gridNumbers = puzzle.grid;
     solutionMap = puzzle.solution;
     hintPairs = puzzle.hints;
 
+    // FULL RESET — clear everything from previous puzzle
+    grid.innerHTML = "";
+    keyTop.innerHTML = "";
+    keyBottom.innerHTML = "";
+    joinerLayer.innerHTML = "";
+//    clearAlphabet();   // if you have this helper
+//    cells = [];        // reset your cellData array
     createGrid();
     createKeyRows();
 
     //  buildGrid();
-    //  applyStarters();
+    applyStarters();
 }
+
+
+function populatePuzzleSelector() {
+    const selector = document.getElementById('puzzleSelector');
+    selector.innerHTML = '';
+
+    for (const id in PUZZLES) {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = `Puzzle ${id}`;
+        selector.appendChild(option);
+    }
+}
+
+document.getElementById('puzzleSelector').addEventListener('change', (e) => {
+    const id = parseInt(e.target.value);
+    loadPuzzle(id);
+});
+
+window.addEventListener("DOMContentLoaded", () => {
+    populatePuzzleSelector();
+    document.getElementById('puzzleSelector').value = "1";
+    loadPuzzle(1);
+});

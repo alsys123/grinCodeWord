@@ -241,3 +241,10 @@
   background: #333; /* or your theme color */
   border-radius: 2px;
 }
+
+#puzzleSelectorWrapper {
+  position: absolute;
+  bottom: 20px;
+  left: 75%;
+  transform: translateX(-50%);
+}
