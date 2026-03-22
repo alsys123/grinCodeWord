@@ -276,3 +276,7 @@
   left: 75%;
   z-index: 2000;
 }
+
+.export-hide {
+  display: none !important;
+}

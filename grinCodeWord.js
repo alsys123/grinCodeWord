@@ -1015,7 +1015,7 @@ document.getElementById("saveBtn").addEventListener("click", () => {
   });
 });
 */
-
+/*
 document.getElementById("saveBtn").addEventListener("click", () => {
 
   const elements = [
@@ -1072,5 +1072,116 @@ document.getElementById("saveBtn").addEventListener("click", () => {
     link.download = "puzzle.png";
     link.href = canvas.toDataURL("image/png");
     link.click();
+  });
+});
+*/
+/*
+document.getElementById("saveBtn").addEventListener("click", () => {
+
+    const elements = [
+	    document.getElementById("grid"),        // the actual grid
+	    document.getElementById("keyTop"),      // top key
+	    document.getElementById("keyBottom"),   // bottom key
+	    document.getElementById("joinerLayer"), // joiner lines
+	    document.getElementById("alphabetBar")  // used letters
+	];
+
+
+  // temp is defined HERE, inside the click handler
+  const temp = document.createElement("div");
+  temp.style.position = "absolute";
+  temp.style.left = "-99999px";
+  temp.style.top = "0";
+  temp.style.visibility = "hidden";
+  temp.style.display = "block";
+
+  elements.forEach(el => {
+    const clone = el.cloneNode(true);
+
+    clone.style.position = "static";
+    clone.style.transform = "none";
+
+    clone.querySelectorAll("*").forEach(child => {
+      child.style.position = "static";
+      child.style.transform = "none";
+    });
+
+    const origCanvases = el.querySelectorAll("canvas");
+    const cloneCanvases = clone.querySelectorAll("canvas");
+
+    origCanvases.forEach((orig, i) => {
+      const cloneCanvas = cloneCanvases[i];
+      const ctx = cloneCanvas.getContext("2d");
+
+      cloneCanvas.width = orig.width;
+      cloneCanvas.height = orig.height;
+
+      ctx.drawImage(orig, 0, 0);
+    });
+
+    temp.appendChild(clone);
+  });
+
+  document.body.appendChild(temp);
+
+  html2canvas(temp, {
+    backgroundColor: "#ffffff",
+    scale: 2
+  }).then(canvas => {
+
+      const ctx = canvas.getContext("2d");
+ctx.fillStyle = "red";
+ctx.fillRect(0, 0, 200, 200);
+
+    document.body.removeChild(temp);
+
+    // Convert to Blob (Safari-safe)
+    const dataURL = canvas.toDataURL("image/png");
+    const parts = dataURL.split(',');
+    const mime = parts[0].match(/:(.*?);/)[1];
+    const binary = atob(parts[1]);
+    let length = binary.length;
+    const buffer = new Uint8Array(length);
+    while (length--) buffer[length] = binary.charCodeAt(length);
+    const blob = new Blob([buffer], { type: mime });
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "puzzle.png";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+  });
+});
+*/
+
+document.getElementById("saveBtn").addEventListener("click", () => {
+  html2canvas(document.querySelector(".wrapper"), {
+    backgroundColor: "#ffffff",
+    scale: 2
+  }).then(canvas => {
+    const dataURL = canvas.toDataURL("image/png");
+    const parts = dataURL.split(',');
+    const mime = parts[0].match(/:(.*?);/)[1];
+    const binary = atob(parts[1]);
+    let length = binary.length;
+    const buffer = new Uint8Array(length);
+    while (length--) buffer[length] = binary.charCodeAt(length);
+    const blob = new Blob([buffer], { type: mime });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "puzzle.png";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   });
 });
