@@ -898,6 +898,9 @@ function loadPuzzle(id) {
     keyTop.innerHTML = "";
     keyBottom.innerHTML = "";
     joinerLayer.innerHTML = "";
+    
+cells.length = 0;   // <-- THIS IS THE FIX
+    
 //    clearAlphabet();   // if you have this helper
 //    cells = [];        // reset your cellData array
     createGrid();
@@ -929,4 +932,145 @@ window.addEventListener("DOMContentLoaded", () => {
     populatePuzzleSelector();
     document.getElementById('puzzleSelector').value = "1";
     loadPuzzle(1);
+});
+
+
+// *** help panel ***
+
+function showDrawingHelp() {
+    const panel = document.getElementById("helpPanel");
+    panel.innerHTML = `
+        <h3>Exact letter format</h3>
+        <img src="help/letters.png">
+    `;
+    panel.classList.remove("hidden");
+}
+
+let helpInitialized = false;
+
+document.getElementById("helpBtn").addEventListener("click", () => {
+  const panel = document.getElementById("helpPanel");
+
+  if (!helpInitialized) {
+    showDrawingHelp();
+      helpInitialized = true;
+      return;
+  }
+
+  panel.classList.toggle("hidden");
+});
+
+// *** SAVE BUTTON ***
+/*
+document.getElementById("saveBtn").addEventListener("click", () => {
+  const container = document.getElementById("puzzleContainer");
+
+    const elements = [
+  document.getElementById("gridWrapper"),
+  document.getElementById("keyPanel"),
+  document.getElementById("usedLetters")
+];
+
+  html2canvas(container).then(canvas => {
+    const link = document.createElement("a");
+    link.download = "puzzle.png";
+    link.href = canvas.toDataURL();
+    link.click();
+  });
+  });
+*/
+/*
+document.getElementById("saveBtn").addEventListener("click", () => {
+    const elements = [
+	document.getElementById("gridWrapper"),
+	document.getElementById("keyPanel"),
+	document.getElementById("usedLetters")
+    ].filter(Boolean);
+    
+    const temp = document.createElement("div");
+
+//    console.log(document.getElementById("grid").tagName);
+
+    temp.style.position = "absolute";
+  temp.style.left = "-99999px"; // off-screen
+  temp.style.top = "0";
+
+  elements.forEach(el => {
+    const clone = el.cloneNode(true);
+    temp.appendChild(clone);
+  });
+
+  document.body.appendChild(temp);
+
+  html2canvas(temp, {
+    backgroundColor: "#ffffff",
+    scale: 2
+  }).then(canvas => {
+    document.body.removeChild(temp);
+
+    const link = document.createElement("a");
+    link.download = "puzzle.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  });
+});
+*/
+
+document.getElementById("saveBtn").addEventListener("click", () => {
+
+  const elements = [
+    document.getElementById("gridWrapper"),
+    document.getElementById("keyPanel"),
+    document.getElementById("usedLetters")
+  ].filter(Boolean);
+
+  const temp = document.createElement("div");
+  temp.style.position = "absolute";
+  temp.style.left = "-99999px";
+  temp.style.top = "0";
+  temp.style.visibility = "hidden"; // important
+  temp.style.display = "block";
+
+  elements.forEach(el => {
+    const clone = el.cloneNode(true);
+
+    // Reset layout so it doesn't collapse
+    clone.style.position = "static";
+    clone.style.transform = "none";
+
+    clone.querySelectorAll("*").forEach(child => {
+      child.style.position = "static";
+      child.style.transform = "none";
+    });
+
+    // Copy canvas drawings
+    const origCanvases = el.querySelectorAll("canvas");
+    const cloneCanvases = clone.querySelectorAll("canvas");
+
+    origCanvases.forEach((orig, i) => {
+	const ctx = cloneCanvases[i].getContext("2d");
+
+	     // ⭐ Critical: match dimensions BEFORE drawing
+      cloneCanvas.width = orig.width;
+      cloneCanvas.height = orig.height;
+
+      ctx.drawImage(orig, 0, 0);
+    });
+
+    temp.appendChild(clone);
+  });
+
+  document.body.appendChild(temp);
+
+  html2canvas(temp, {
+    backgroundColor: "#ffffff",
+    scale: 2
+  }).then(canvas => {
+    document.body.removeChild(temp);
+
+    const link = document.createElement("a");
+    link.download = "puzzle.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  });
 });
