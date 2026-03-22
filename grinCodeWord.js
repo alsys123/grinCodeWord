@@ -923,15 +923,29 @@ function populatePuzzleSelector() {
     }
 }
 
+/*
 document.getElementById('puzzleSelector').addEventListener('change', (e) => {
     const id = parseInt(e.target.value);
     loadPuzzle(id);
 });
-
+*/
+/*
 window.addEventListener("DOMContentLoaded", () => {
     populatePuzzleSelector();
     document.getElementById('puzzleSelector').value = "1";
     loadPuzzle(1);
+});
+*/
+document.getElementById("loadPuzzleBtn").addEventListener("click", () => {
+  const input = document.getElementById("puzzleInput");
+  const id = parseInt(input.value, 3);
+
+  if (!id || !PUZZLES[id]) {
+    alert("That puzzle number doesn't exist.");
+    return;
+  }
+
+  loadPuzzle(id);
 });
 
 
