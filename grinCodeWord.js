@@ -853,7 +853,7 @@ function isLetterStillUsed(letter) {
 function drawJoiner(cellA, cellB) {
     const rectA = cellA.getBoundingClientRect();
     const rectB = cellB.getBoundingClientRect();
-    const wrapperRect = gridWrapper.getBoundingClientRect();
+    const wrapperRect = gridWrapperJoiner.getBoundingClientRect();
 
     const x1 = rectA.left + rectA.width / 2 - wrapperRect.left;
     const y1 = rectA.top + rectA.height / 2 - wrapperRect.top;
@@ -876,6 +876,8 @@ function drawJoiner(cellA, cellB) {
 
     joinerLayer.appendChild(div);
 }
+
+// **** load the puzzle selected ***
 
 function loadPuzzle(id) {
 //    populatePuzzleSelector();
@@ -936,18 +938,24 @@ window.addEventListener("DOMContentLoaded", () => {
     loadPuzzle(1);
 });
 */
-document.getElementById("loadPuzzleBtn").addEventListener("click", () => {
-  const input = document.getElementById("puzzleInput");
-  const id = parseInt(input.value, 3);
 
-  if (!id || !PUZZLES[id]) {
-    alert("That puzzle number doesn't exist.");
-    return;
+document.getElementById("puzzleInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    const id = parseInt(e.target.value, 10);
+
+    if (!id || !PUZZLES[id]) {
+	alert(`That puzzle "${id}" number doesn't exist.`);
+      return;
+    }
+
+    loadPuzzle(id);
   }
-
-  loadPuzzle(id);
 });
-
+// default 1
+window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("puzzleInput").value = 1;
+  loadPuzzle(1);
+});
 
 // *** help panel ***
 
