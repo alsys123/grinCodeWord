@@ -2,6 +2,14 @@
    Main routine
    ------------------------------ */
 
+let PUZZLES = {};   // will be filled from JSON
+let selectedLetter = null;
+
+async function loadPuzzleData() {
+  const response = await fetch("puzzleData.json");
+  PUZZLES = await response.json();
+}
+
 const rows = 13;
     const cols = 13;
     const inactivityDelay = 1200; // Slightly faster recognition
@@ -14,34 +22,6 @@ const rows = 13;
     const hintEl = document.getElementById('hintText');
     const checkBtn = document.getElementById('checkBtn');
 
-/*
-    const gridNumbers = [
-    [0,5,12,8,0,3,19,3,0,8,12,5,0],
-      [7,0,21,0,14,0,9,0,14,0,21,0,7],
-      [10,18,0,4,0,22,1,22,0,4,0,18,10],
-      [0,0,16,0,11,0,6,0,11,0,16,0,0],
-      [2,15,0,23,0,13,25,13,0,23,0,15,2],
-      [9,0,20,0,17,0,24,0,17,0,20,0,9],
-      [0,6,1,11,25,24,26,24,25,11,1,6,0],
-      [9,0,20,0,17,0,24,0,17,0,20,0,9],
-      [2,15,0,23,0,13,25,13,0,23,0,15,2],
-      [0,0,16,0,11,0,6,0,11,0,16,0,0],
-      [10,18,0,4,0,22,1,22,0,4,0,18,10],
-      [7,0,21,0,14,0,9,0,14,0,21,0,7],
-      [0,5,12,8,0,3,19,3,0,8,12,5,0]
-    ];
-
-    const solutionMap = {
-      1:'E',2:'R',3:'O',4:'N',5:'S',6:'L',7:'C',8:'D',9:'I',10:'H',
-      11:'T',12:'A',13:'U',14:'P',15:'M',16:'G',17:'Y',18:'B',19:'K',
-      20:'F',21:'W',22:'V',23:'J',24:'Q',25:'X',26:'Z'
-    };
-
-    const hintPairs = [
-      { number: 3, letter: "O" },
-      { number: 19, letter: "K" }
-    ];
-*/
     const cells = [];
 
 function showAlert() {
@@ -71,7 +51,7 @@ function createCanvas() {
     
     }
 
-    function createCell(number) {
+function createCell(number) {
       const cell = document.createElement('div');
       cell.className = 'cell';
 
@@ -99,9 +79,10 @@ function createCanvas() {
 
       setupDrawing(cellData);
       setupDoubleTap(cellData);
-
-      return cellData;
-    }
+//    attachAlphabetClickFill(cellData);   // ⭐ here
+        
+    return cellData;
+} //createCell
 
 function createGrid() {
 
@@ -166,6 +147,10 @@ function setupDoubleTap(cellData) {
         const now = Date.now();
         if (now - cellData.lastTap < 280) {
             if (cellData.recognized && !cellData.starter) {
+
+      // ⭐ FIX: reset recognized BEFORE clearing
+		cellData.recognized = false;
+		
 //		clearCell(cellData);
 		        propagateClear(cellData.number);
             }
@@ -177,7 +162,7 @@ function setupDoubleTap(cellData) {
     cellData.cell.addEventListener('click', handler);
 }//setupDoubleTap
 
-    function clearCell(cellData) {
+function clearCell(cellData) {
       const { number, cell } = cellData;
       cell.innerHTML = '';
 
@@ -195,8 +180,32 @@ function setupDoubleTap(cellData) {
       cellData.starter = false;
 
       setupDrawing(cellData);
-      setupDoubleTap(cellData);
-    }
+    setupDoubleTap(cellData);
+
+//    attachAlphabetClickFill(cellData);   // ⭐ reattach here
+
+} //clearCell
+
+/*
+// worker function
+function attachAlphabetClickFill(cellData) {
+  cellData.cell.addEventListener('click', () => {
+//  cellData.canvas.addEventListener('click', () => {
+    if (!selectedLetter) return;
+    if (cellData.starter) return;
+
+    placeLetter(cellData, selectedLetter, false);
+    propagateLetter(cellData.number, selectedLetter);
+    cellData.recognized = true;
+
+    // clear selection after placing
+    document.querySelectorAll('.alpha-letter').forEach(el =>
+      el.classList.remove('selected')
+    );
+    selectedLetter = null;
+  });
+}//attachAlphabetClickFill
+*/
 
     function getPos(canvas, evt) {
       const rect = canvas.getBoundingClientRect();
@@ -208,10 +217,21 @@ function setupDoubleTap(cellData) {
       };
     }
 
-    function setupDrawing(cellData) {
-      const { canvas, ctx } = cellData;
+function setupDrawing(cellData) {
+    const { canvas, ctx } = cellData;
 
-      const start = (e) => {
+    const start = (e) => {
+
+cellData.isTap = true;
+
+	// If we're in "alphabet paste" mode, don't draw — let click handler run
+
+	// If alphabet mode, do NOT draw and do NOT trigger OCR
+  if (selectedLetter) {
+    cellData.drawing = false;
+    return;
+  }
+	
         if (cellData.recognized) return;
         e.preventDefault();
         cellData.drawing = true;
@@ -219,10 +239,16 @@ function setupDoubleTap(cellData) {
         cellData.lastX = pos.x;
         cellData.lastY = pos.y;
         clearTimeout(cellData.timer);
-      };
+    };
 
-      const move = (e) => {
+    const move = (e) => {
+
+	
         if (!cellData.drawing || cellData.recognized) return;
+
+	  // Movement detected → this is a stroke, not a tap
+  cellData.isTap = false;
+
         e.preventDefault();
         const pos = getPos(canvas, e);
         ctx.beginPath();
@@ -231,98 +257,37 @@ function setupDoubleTap(cellData) {
         ctx.stroke();
         cellData.lastX = pos.x;
         cellData.lastY = pos.y;
-      };
+    };
 
-      const end = () => {
+    const end = () => {
+
+	// If alphabet mode, do NOT trigger OCR
+  if (selectedLetter) return;
+
+	// If it was a tap, let click handler run
+	if (cellData.isTap) return;
+	
         if (!cellData.drawing) return;
         cellData.drawing = false;
         clearTimeout(cellData.timer);
         cellData.timer = setTimeout(() => recognizeCell(cellData), inactivityDelay);
-      };
+    };
 
-      canvas.onmousedown = start;
-      canvas.onmousemove = move;
-      window.addEventListener('mouseup', end);
+    canvas.onmousedown = start;
+    canvas.onmousemove = move;
+    window.addEventListener('mouseup', end);
 
-      canvas.ontouchstart = start;
-      canvas.ontouchmove = move;
-      window.addEventListener('touchend', end);
-      window.addEventListener('touchcancel', end);
-    }
-
-/*
-async function recognizeCell(cellData) {
-    if (cellData.recognized) return;
-
-    const { canvas } = cellData;
-    const ctx = canvas.getContext('2d');
-    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-    let hasInk = false;
-    for (let i = 0; i < img.data.length; i += 4) {
-        if (img.data[i] < 250 || img.data[i+1] < 250 || img.data[i+2] < 250) {
-            hasInk = true;
-            break;
-        }
-    }
-    if (!hasInk) return;
-
-    statusEl.textContent = 'Recognizing letter...';
-
-    showSpinner();   // <--- NEW
+    canvas.ontouchstart = start;
+    canvas.ontouchmove = move;
+    window.addEventListener('touchend', end);
+    window.addEventListener('touchcancel', end);
     
-    try {
-	const processed = preprocessForOCR(canvas);
-	const result =
-	      await Tesseract.recognize(processed,
-					'eng',
-					{tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'});
+}// setupDrawing
 
-//        const result = await Tesseract.recognize(canvas, 'eng', {
-//            tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-//        });
-
-        let text = (result.data.text || '').trim();
-        if (text.length > 1) text = text[0];
-        if (!text) {
-	    //          showAlert();
-	    showAlertWithDrawing(canvas);
-            statusEl.textContent = 'Could not recognize.';
-	    clearCell(cellData);   // <-- add this
-	    
-            return;
-        }
-
-        const letter = text.toUpperCase();
-        if (!/^[A-Z]$/.test(letter)) {
-	    //         showAlert();
-	    showAlertWithDrawing(canvas);
-            statusEl.textContent = 'Only letters allowed.';
-	    clearCell(cellData);   // <-- add this
-	    
-            return;
-        }
-
-        placeLetter(cellData, letter, false);
-	propagateLetter(cellData.number, letter);
-
-        cellData.recognized = true;
-        statusEl.textContent = `Recognized: "${letter}"`;
-	
-    } catch (err) {
-        console.error(err);
-	//          showAlert();
-	showAlertWithDrawing(canvas);
-        statusEl.textContent = 'Error during recognition.';
-	clearCell(cellData);   // <-- add this
-	
-    } finally {
-	hideSpinner();   // <--- NEW
-    }
-}//recognizeCell
-*/
 
 async function recognizeCell(cellData) {
+      if (selectedLetter) return;   // alphabet mode → skip OCR
+
     if (cellData.recognized) return;
 
     const { canvas } = cellData;
@@ -355,6 +320,7 @@ async function recognizeCell(cellData) {
 	    }
         );
 
+/*
         // Extract symbol data
         const symbols = result.data.symbols;
         const sym = symbols && symbols[0];
@@ -363,7 +329,23 @@ async function recognizeCell(cellData) {
 	console.log("CHOICES:", sym.choices);
 	console.log("ALTERNATES:", sym.alternates);
 	console.log("PROPERTIES:", sym.properties);
-	
+*/
+	const symbols = result.data.symbols;
+const sym = symbols && symbols[0];
+
+//console.log("SYMBOL:", sym);
+
+if (!sym) {
+    showAlertWithDrawing(canvas);
+    statusEl.textContent = 'Could not recognize.';
+    clearCell(cellData);
+    return;
+}
+
+//console.log("CHOICES:", sym.choices || []);
+//console.log("ALTERNATES:", sym.alternates || []);
+//console.log("PROPERTIES:", sym.properties || {});
+
         if (!sym) {
             showAlertWithDrawing(canvas);
             statusEl.textContent = 'Could not recognize.';
@@ -442,6 +424,10 @@ function placeLetter(cellData, letter, isStarter) {
     if (isStarter) letterDiv.classList.add('starter');
     letterDiv.textContent = letter;
     cell.appendChild(letterDiv);
+
+      // ⭐ Reattach click-to-fill after DOM rewrite
+//    attachAlphabetClickFill(cellData);
+    
 }//placeLetter
 
 
@@ -725,6 +711,10 @@ function propagateClear(number) {
     // Clear all grid cells with this number
     cells.forEach(cd => {
 	if (cd.number === number && !cd.starter) {
+
+	    // ⭐ ALWAYS reset starter
+            cd.starter = false;
+	    
 	    clearCell(cd);
 	    cd.recognized = false;
 	}
@@ -816,9 +806,24 @@ function preprocessForOCR(canvas) {
   return temp;
 }//preprocessForOCR
 
+
 function buildAlphabetBar() {
   const bar = document.getElementById('alphabetBar');
   bar.innerHTML = '';
+
+    // ⭐ Move the alphabet bar in JS
+  bar.style.position = "absolute";
+  bar.style.right = "-80px";          // distance from right edge
+//  bar.style.top = "50%";             // vertical center
+//  bar.style.transform = "translateY(-50%)";
+  bar.style.display = "grid";
+  bar.style.gridTemplateColumns = "40px";  // one letter per row
+  bar.style.gridAutoRows = "40px";
+    bar.style.gap = "4px";
+bar.style.gridTemplateColumns = "40px 40px";
+//bar.style.top = "45px";
+bar.style.transform = "none";
+    bar.style.top = (45 + keyTop.offsetHeight + 20) + "px";
 
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
@@ -827,9 +832,20 @@ function buildAlphabetBar() {
     div.className = 'alpha-letter';
     div.dataset.letter = letter;
     div.textContent = letter;
+
+    // NEW: click to select
+    div.addEventListener('click', () => {
+      document.querySelectorAll('.alpha-letter').forEach(el => 
+        el.classList.remove('selected')
+      );
+
+      div.classList.add('selected');
+      selectedLetter = letter;
+    });
+
     bar.appendChild(div);
   });
-}//buildAlphabetBar
+}
 
 function markAlphabetUsed(letter) {
   const div = document.querySelector(`.alpha-letter[data-letter="${letter}"]`);
@@ -951,10 +967,19 @@ document.getElementById("puzzleInput").addEventListener("keydown", e => {
     loadPuzzle(id);
   }
 });
+
+/*
 // default 1
 window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("puzzleInput").value = 1;
   loadPuzzle(1);
+  });
+*/
+
+window.addEventListener("DOMContentLoaded", async () => {
+  await loadPuzzleData();          // load external file
+  document.getElementById("puzzleInput").value = 1;
+  loadPuzzle(1);                   // now safe to load
 });
 
 // *** help panel ***
@@ -982,205 +1007,6 @@ document.getElementById("helpBtn").addEventListener("click", () => {
   panel.classList.toggle("hidden");
 });
 
-// *** SAVE BUTTON ***
-/*
-document.getElementById("saveBtn").addEventListener("click", () => {
-  const container = document.getElementById("puzzleContainer");
-
-    const elements = [
-  document.getElementById("gridWrapper"),
-  document.getElementById("keyPanel"),
-  document.getElementById("usedLetters")
-];
-
-  html2canvas(container).then(canvas => {
-    const link = document.createElement("a");
-    link.download = "puzzle.png";
-    link.href = canvas.toDataURL();
-    link.click();
-  });
-  });
-*/
-/*
-document.getElementById("saveBtn").addEventListener("click", () => {
-    const elements = [
-	document.getElementById("gridWrapper"),
-	document.getElementById("keyPanel"),
-	document.getElementById("usedLetters")
-    ].filter(Boolean);
-    
-    const temp = document.createElement("div");
-
-//    console.log(document.getElementById("grid").tagName);
-
-    temp.style.position = "absolute";
-  temp.style.left = "-99999px"; // off-screen
-  temp.style.top = "0";
-
-  elements.forEach(el => {
-    const clone = el.cloneNode(true);
-    temp.appendChild(clone);
-  });
-
-  document.body.appendChild(temp);
-
-  html2canvas(temp, {
-    backgroundColor: "#ffffff",
-    scale: 2
-  }).then(canvas => {
-    document.body.removeChild(temp);
-
-    const link = document.createElement("a");
-    link.download = "puzzle.png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-  });
-});
-*/
-/*
-document.getElementById("saveBtn").addEventListener("click", () => {
-
-  const elements = [
-    document.getElementById("gridWrapper"),
-    document.getElementById("keyPanel"),
-    document.getElementById("usedLetters")
-  ].filter(Boolean);
-
-  const temp = document.createElement("div");
-  temp.style.position = "absolute";
-  temp.style.left = "-99999px";
-  temp.style.top = "0";
-  temp.style.visibility = "hidden"; // important
-  temp.style.display = "block";
-
-  elements.forEach(el => {
-    const clone = el.cloneNode(true);
-
-    // Reset layout so it doesn't collapse
-    clone.style.position = "static";
-    clone.style.transform = "none";
-
-    clone.querySelectorAll("*").forEach(child => {
-      child.style.position = "static";
-      child.style.transform = "none";
-    });
-
-    // Copy canvas drawings
-    const origCanvases = el.querySelectorAll("canvas");
-    const cloneCanvases = clone.querySelectorAll("canvas");
-
-    origCanvases.forEach((orig, i) => {
-	const ctx = cloneCanvases[i].getContext("2d");
-
-	     // ⭐ Critical: match dimensions BEFORE drawing
-      cloneCanvas.width = orig.width;
-      cloneCanvas.height = orig.height;
-
-      ctx.drawImage(orig, 0, 0);
-    });
-
-    temp.appendChild(clone);
-  });
-
-  document.body.appendChild(temp);
-
-  html2canvas(temp, {
-    backgroundColor: "#ffffff",
-    scale: 2
-  }).then(canvas => {
-    document.body.removeChild(temp);
-
-    const link = document.createElement("a");
-    link.download = "puzzle.png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-  });
-});
-*/
-/*
-document.getElementById("saveBtn").addEventListener("click", () => {
-
-    const elements = [
-	    document.getElementById("grid"),        // the actual grid
-	    document.getElementById("keyTop"),      // top key
-	    document.getElementById("keyBottom"),   // bottom key
-	    document.getElementById("joinerLayer"), // joiner lines
-	    document.getElementById("alphabetBar")  // used letters
-	];
-
-
-  // temp is defined HERE, inside the click handler
-  const temp = document.createElement("div");
-  temp.style.position = "absolute";
-  temp.style.left = "-99999px";
-  temp.style.top = "0";
-  temp.style.visibility = "hidden";
-  temp.style.display = "block";
-
-  elements.forEach(el => {
-    const clone = el.cloneNode(true);
-
-    clone.style.position = "static";
-    clone.style.transform = "none";
-
-    clone.querySelectorAll("*").forEach(child => {
-      child.style.position = "static";
-      child.style.transform = "none";
-    });
-
-    const origCanvases = el.querySelectorAll("canvas");
-    const cloneCanvases = clone.querySelectorAll("canvas");
-
-    origCanvases.forEach((orig, i) => {
-      const cloneCanvas = cloneCanvases[i];
-      const ctx = cloneCanvas.getContext("2d");
-
-      cloneCanvas.width = orig.width;
-      cloneCanvas.height = orig.height;
-
-      ctx.drawImage(orig, 0, 0);
-    });
-
-    temp.appendChild(clone);
-  });
-
-  document.body.appendChild(temp);
-
-  html2canvas(temp, {
-    backgroundColor: "#ffffff",
-    scale: 2
-  }).then(canvas => {
-
-      const ctx = canvas.getContext("2d");
-ctx.fillStyle = "red";
-ctx.fillRect(0, 0, 200, 200);
-
-    document.body.removeChild(temp);
-
-    // Convert to Blob (Safari-safe)
-    const dataURL = canvas.toDataURL("image/png");
-    const parts = dataURL.split(',');
-    const mime = parts[0].match(/:(.*?);/)[1];
-    const binary = atob(parts[1]);
-    let length = binary.length;
-    const buffer = new Uint8Array(length);
-    while (length--) buffer[length] = binary.charCodeAt(length);
-    const blob = new Blob([buffer], { type: mime });
-
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "puzzle.png";
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(url);
-  });
-});
-*/
 
 document.getElementById("saveBtn").addEventListener("click", () => {
   html2canvas(document.querySelector(".wrapper"), {
@@ -1207,3 +1033,31 @@ document.getElementById("saveBtn").addEventListener("click", () => {
     URL.revokeObjectURL(url);
   });
 });
+
+gridEl.addEventListener('click', (e) => {
+  // No letter selected? Nothing to do.
+  if (!selectedLetter) return;
+
+  // Find the cell div that was clicked (canvas, letter, etc. all bubble up)
+  const cellDiv = e.target.closest('.cell');
+  if (!cellDiv) return;
+
+  // Find the matching cellData
+  const cellData = cells.find(cd => cd.cell === cellDiv);
+  if (!cellData) return;
+
+  // Don’t overwrite starters
+  if (cellData.starter) return;
+
+  // Paste the letter and propagate
+  placeLetter(cellData, selectedLetter, false);
+  propagateLetter(cellData.number, selectedLetter);
+  cellData.recognized = true;
+
+  // Clear alphabet selection
+  document.querySelectorAll('.alpha-letter').forEach(el =>
+    el.classList.remove('selected')
+  );
+  selectedLetter = null;
+});
+

@@ -196,6 +196,7 @@
 }
 */
 
+/*
 #alphabetBar {
   display: flex;
   flex-wrap: wrap;
@@ -203,6 +204,7 @@
   gap: 8px;
   margin-top: 20px;
 }
+*/
 
 .alpha-letter {
   font-size: 12px;
@@ -312,4 +314,10 @@
   top: 5px;
   left: 80px;
   width: 60px;
+}
+
+.alpha-letter.selected {
+  background: #4a90e2;
+  color: white;
+  border-radius: 4px;
 }
