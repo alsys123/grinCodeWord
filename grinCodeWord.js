@@ -19,7 +19,7 @@ const rows = 13;
     const keyBottom = document.getElementById('keyBottom');
     const statusEl = document.getElementById('status');
     const alertEl = document.getElementById('alert');
-    const hintEl = document.getElementById('hintText');
+//    const hintEl = document.getElementById('hintText');
     const checkBtn = document.getElementById('checkBtn');
 
     const cells = [];
@@ -129,7 +129,7 @@ function applyStarters() {
         }
     });
 
-    hintEl.textContent = `Hints: ${hintPairs[0].number} = ${hintPairs[0].letter}   ${hintPairs[1].number} = ${hintPairs[1].letter}`;
+//    hintEl.textContent = `Hints: ${hintPairs[0].number} = ${hintPairs[0].letter}   ${hintPairs[1].number} = ${hintPairs[1].letter}`;
 
     
     // here i am ?????

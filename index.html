@@ -21,7 +21,7 @@
     
     <div id="grid" class="grid"></div>
 
-    <div class="hint" id="hintText"></div>
+<!--    <div class="hint" id="hintText"></div> -->
 
     <div id="keyTop" class="key-grid"></div>
     <div id="keyBottom" class="key-grid"></div>
@@ -48,10 +48,10 @@
 
 <div id="puzzleSelectorWrapper">
   <label id="puzzleLabel">Puzzle #:</label>
-  <input id="puzzleInput" type="number" min="1" step="1" placeholder="1">
+  <input id="puzzleInput" type="number" min="1" step="1" placeholder="1" maxlength="4">
 </div>
 
-<button id="helpBtn">Drawing Help</button>
+<button id="helpBtn">Help</button>
 <div id="helpPanel" class="hidden"></div>
 
 <div id="puzzleContainer">
@@ -65,6 +65,8 @@
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <!--  <script src="puzzleData.js"></script> -->
+  <script src="utils.js"></script>
+  <script src="layout.js"></script>
   <script src="grinCodeWord.js"></script>
   
 </body>
