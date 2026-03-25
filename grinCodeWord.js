@@ -5,9 +5,22 @@
 let PUZZLES = {};   // will be filled from JSON
 let selectedLetter = null;
 
+/*
 async function loadPuzzleData() {
   const response = await fetch("puzzleData.json");
   PUZZLES = await response.json();
+}
+*/
+
+async function loadAllPuzzleSets() {
+  const manifest = await fetch("data/manifest.json").then(r => r.json());
+
+  PUZZLES = {};
+
+  for (const file of manifest.files) {
+    const data = await fetch("data/" + file).then(r => r.json());
+    Object.assign(PUZZLES, data);
+  }
 }
 
 const rows = 13;
@@ -55,6 +68,14 @@ function createCell(number) {
       const cell = document.createElement('div');
       cell.className = 'cell';
 
+
+ // ⭐ Attach joiner events here
+    cell.addEventListener("mousedown", onJoinStart);
+    window.addEventListener("mouseup", onJoinEnd);
+    cell.addEventListener("touchstart", onJoinStart);
+    window.addEventListener("touchend", onJoinEnd);
+   
+    
       const numberLabel = document.createElement('div');
       numberLabel.className = 'number-label';
       numberLabel.textContent = number;
@@ -220,35 +241,44 @@ function attachAlphabetClickFill(cellData) {
 function setupDrawing(cellData) {
     const { canvas, ctx } = cellData;
 
+    // Canvas should NOT block joiner gestures by default
+    canvas.style.pointerEvents = "none";
+    
     const start = (e) => {
 
-cellData.isTap = true;
-
+	if (joinIsDragging) return;   // <-- prevents drawing during join gesture
+	
+	cellData.isTap = true;
+	
 	// If we're in "alphabet paste" mode, don't draw — let click handler run
-
+	
 	// If alphabet mode, do NOT draw and do NOT trigger OCR
-  if (selectedLetter) {
-    cellData.drawing = false;
-    return;
-  }
+	if (selectedLetter) {
+	    cellData.drawing = false;
+	    return;
+	}
 	
         if (cellData.recognized) return;
-        e.preventDefault();
+
+      // ⭐ Enable drawing mode: canvas must receive pointer events
+        canvas.style.pointerEvents = "auto";
+	
+	e.preventDefault();
         cellData.drawing = true;
         const pos = getPos(canvas, e);
         cellData.lastX = pos.x;
         cellData.lastY = pos.y;
         clearTimeout(cellData.timer);
     };
-
+    
     const move = (e) => {
-
+	
 	
         if (!cellData.drawing || cellData.recognized) return;
-
-	  // Movement detected → this is a stroke, not a tap
-  cellData.isTap = false;
-
+	
+	// Movement detected → this is a stroke, not a tap
+	cellData.isTap = false;
+	
         e.preventDefault();
         const pos = getPos(canvas, e);
         ctx.beginPath();
@@ -258,25 +288,35 @@ cellData.isTap = true;
         cellData.lastX = pos.x;
         cellData.lastY = pos.y;
     };
-
+    
     const end = () => {
-
+	
 	// If alphabet mode, do NOT trigger OCR
-  if (selectedLetter) return;
-
+	if (selectedLetter) return;
+	
 	// If it was a tap, let click handler run
-	if (cellData.isTap) return;
+	if (cellData.isTap) {
+
+	    // ⭐ Disable canvas pointer events again
+            canvas.style.pointerEvents = "none";
+	    return;
+
+	}
 	
         if (!cellData.drawing) return;
         cellData.drawing = false;
+
+	// ⭐ Disable canvas pointer events again
+        canvas.style.pointerEvents = "none";
+
         clearTimeout(cellData.timer);
         cellData.timer = setTimeout(() => recognizeCell(cellData), inactivityDelay);
     };
-
+    
     canvas.onmousedown = start;
     canvas.onmousemove = move;
     window.addEventListener('mouseup', end);
-
+    
     canvas.ontouchstart = start;
     canvas.ontouchmove = move;
     window.addEventListener('touchend', end);
@@ -866,32 +906,6 @@ function isLetterStillUsed(letter) {
   );
 }
 
-function drawJoiner(cellA, cellB) {
-    const rectA = cellA.getBoundingClientRect();
-    const rectB = cellB.getBoundingClientRect();
-    const wrapperRect = gridWrapperJoiner.getBoundingClientRect();
-
-    const x1 = rectA.left + rectA.width / 2 - wrapperRect.left;
-    const y1 = rectA.top + rectA.height / 2 - wrapperRect.top;
-    const x2 = rectB.left + rectB.width / 2 - wrapperRect.left;
-    const y2 = rectB.top + rectB.height / 2 - wrapperRect.top;
-
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const length = Math.sqrt(dx*dx + dy*dy);
-    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-
-    const div = document.createElement('div');
-    div.className = 'joiner';
-    div.style.width = `${length}px`;
-    div.style.height = `4px`;        // thickness
-    div.style.left = `${x1}px`;
-    div.style.top = `${y1 - 2}px`;   // center vertically
-    div.style.transform = `rotate(${angle}deg)`;
-    div.style.transformOrigin = '0 50%';
-
-    joinerLayer.appendChild(div);
-}
 
 // **** load the puzzle selected ***
 
@@ -909,12 +923,12 @@ function loadPuzzle(id) {
     
     gridNumbers = puzzle.grid;
     solutionMap = puzzle.solution;
-    hintPairs = puzzle.hints;
+    hintPairs   = puzzle.hints;
 
     // FULL RESET — clear everything from previous puzzle
-    grid.innerHTML = "";
-    keyTop.innerHTML = "";
-    keyBottom.innerHTML = "";
+    grid.innerHTML        = "";
+    keyTop.innerHTML      = "";
+    keyBottom.innerHTML   = "";
     joinerLayer.innerHTML = "";
     
 cells.length = 0;   // <-- THIS IS THE FIX
@@ -926,6 +940,10 @@ cells.length = 0;   // <-- THIS IS THE FIX
 
     //  buildGrid();
     applyStarters();
+
+    dei("puzzleTitle").textContent = `Codeword Handwriting Puzzle — #${id}`;
+    // update navigation buttons
+    updatePuzzleNavButtons(id);
 }
 
 
@@ -969,6 +987,32 @@ document.getElementById("puzzleInput").addEventListener("keydown", e => {
 });
 
 /*
+const puzzleInput = document.getElementById("puzzleInput");
+
+
+puzzleInput.addEventListener("input", e => {
+  const id = parseInt(e.target.value, 10);
+
+  if (!id) return;            // ignore empty or invalid
+  if (!PUZZLES[id]) return;   // ignore numbers that don't exist
+
+  loadPuzzle(id);
+});
+*/
+
+const puzzleInput = document.getElementById("puzzleInput");
+let puzzleLoadTimer = null;
+
+puzzleInput.addEventListener("input", e => {
+  clearTimeout(puzzleLoadTimer);
+
+  puzzleLoadTimer = setTimeout(() => {
+    const id = parseInt(e.target.value, 10);
+    if (id && PUZZLES[id]) loadPuzzle(id);
+  }, 150);
+});
+
+/*
 // default 1
 window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("puzzleInput").value = 1;
@@ -977,7 +1021,8 @@ window.addEventListener("DOMContentLoaded", () => {
 */
 
 window.addEventListener("DOMContentLoaded", async () => {
-  await loadPuzzleData();          // load external file
+//    await loadPuzzleData();          // load external file
+    await loadAllPuzzleSets();
   document.getElementById("puzzleInput").value = 1;
   loadPuzzle(1);                   // now safe to load
 });
@@ -1061,3 +1106,35 @@ gridEl.addEventListener('click', (e) => {
   selectedLetter = null;
 });
 
+// *** Previous Next Button
+//const puzzleInput = document.getElementById("puzzleInput");
+const prevBtn = document.getElementById("prevPuzzle");
+const nextBtn = document.getElementById("nextPuzzle");
+
+function loadPuzzleIfExists(id) {
+  if (PUZZLES[id]) {
+    puzzleInput.value = id;
+    loadPuzzle(id);
+  }
+}
+
+prevBtn.addEventListener("click", () => {
+  const id = parseInt(puzzleInput.value || "1", 10);
+  loadPuzzleIfExists(id - 1);
+});
+
+nextBtn.addEventListener("click", () => {
+  const id = parseInt(puzzleInput.value || "1", 10);
+  loadPuzzleIfExists(id + 1);
+});
+
+// see whether the buttons should be enabled/disabled
+function updatePuzzleNavButtons(currentId) {
+  const prevBtn = document.getElementById("prevPuzzle");
+  const nextBtn = document.getElementById("nextPuzzle");
+
+  const maxPuzzle = Math.max(...Object.keys(PUZZLES).map(Number));
+
+  prevBtn.disabled = currentId <= 1;
+  nextBtn.disabled = currentId >= maxPuzzle;
+}

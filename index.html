@@ -17,7 +17,7 @@
 
     <div id="alert">LETTER NOT RECOGNIZED — TRY AGAIN</div>
 
-    <h1>Codeword Handwriting Puzzle</h1>
+    <h1 id="puzzleTitle">Codeword Handwriting Puzzle</h1>
     
     <div id="grid" class="grid"></div>
 
@@ -49,6 +49,9 @@
 <div id="puzzleSelectorWrapper">
   <label id="puzzleLabel">Puzzle #:</label>
   <input id="puzzleInput" type="number" min="1" step="1" placeholder="1" maxlength="4">
+
+  <button id="prevPuzzle">Previous</button>
+  <button id="nextPuzzle">Next</button>
 </div>
 
 <button id="helpBtn">Help</button>
@@ -68,6 +71,7 @@
   <script src="utils.js"></script>
   <script src="layout.js"></script>
   <script src="grinCodeWord.js"></script>
+  <script src="cellJoiner.js"></script>
   
 </body>
 </html>

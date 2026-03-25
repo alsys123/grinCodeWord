@@ -229,6 +229,12 @@
   position: relative;
 }
 
+#gridWrapperJoiner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
 
 #joinerLayer {
   position: absolute;
@@ -332,4 +338,8 @@
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+.cell canvas {
+  pointer-events: none;
 }
