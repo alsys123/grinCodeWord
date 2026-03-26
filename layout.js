@@ -4,23 +4,11 @@
 
 
 function positionHelpButton() {
-//  const btn = document.getElementById("helpBtn");
   const btn = dei("helpBtn");
-//  const wrapper = document.querySelector(".wrapper");
-
-  btn.style.position = "absolute";
-
-  // Example: anchor bottom‑right of wrapper
-//  btn.style.left = (wrapper.offsetWidth - btn.offsetWidth - 20) + "px";
-//    btn.style.top = ((wrapper.offsetHeight - btn.offsetHeight) - 70) + "px";
-
-//    btn.style.left = ((window.innerWidth - btn.offsetWidth) - 200) + "px";
-//    cLog(window.innerWidth);
+    btn.style.position = "absolute";
     
-//    btn.style.top  = ((window.innerHeight - btn.offsetHeight) - 600) + "px";
     btn.style.top   = (window.innerHeight * 0.05) + "px";
     btn.style.right = (window.innerWidth * 0.20) + "px";
-
 }
 
 window.addEventListener("load", positionHelpButton);
@@ -62,3 +50,14 @@ function positionPuzzleSelector() {
 
 window.addEventListener("load", positionPuzzleSelector);
 window.addEventListener("resize", positionPuzzleSelector);
+
+function positionJoinerButton() {
+  const btn = dei("joinerBtn");
+    btn.style.position = "absolute";
+    
+    btn.style.top   = (window.innerHeight * 0.05) + "px";
+    btn.style.right = (window.innerWidth * 0.25) + "px";
+}
+
+window.addEventListener("load", positionJoinerButton);
+window.addEventListener("resize", positionJoinerButton);

@@ -64,18 +64,19 @@ function createCanvas() {
     
     }
 
-function createCell(number) {
+function createCell(number,r,c) {
       const cell = document.createElement('div');
       cell.className = 'cell';
 
-
+/*
  // ⭐ Attach joiner events here
     cell.addEventListener("mousedown", onJoinStart);
     window.addEventListener("mouseup", onJoinEnd);
     cell.addEventListener("touchstart", onJoinStart);
     window.addEventListener("touchend", onJoinEnd);
-   
-    
+*/   
+//    cell.addEventListener("click", () => handleJoinerTap(cellData));
+
       const numberLabel = document.createElement('div');
       numberLabel.className = 'number-label';
       numberLabel.textContent = number;
@@ -97,6 +98,12 @@ function createCell(number) {
         lastTap: 0,
         starter: false
       };
+    
+    // add rows and column
+    cellData.row = r;
+    cellData.col = c;
+
+    cell.addEventListener("click", () => handleJoinerTap(cellData));
 
       setupDrawing(cellData);
       setupDoubleTap(cellData);
@@ -121,7 +128,7 @@ function createGrid() {
 		continue;
             }
 	    
-            const cd = createCell(num);
+            const cd = createCell(num,r,c);
             gridEl.appendChild(cd.cell);
             cells.push(cd);
         }
@@ -153,12 +160,10 @@ function applyStarters() {
 //    hintEl.textContent = `Hints: ${hintPairs[0].number} = ${hintPairs[0].letter}   ${hintPairs[1].number} = ${hintPairs[1].letter}`;
 
     
-    // here i am ?????
-    
     // TEST JOINER
-    const cellA = cells[23].cell;
-    const cellB = cells[24].cell;
-    drawJoiner(cellA, cellB);
+//    const cellA = cells[23].cell;
+//    const cellB = cells[24].cell;
+//    drawJoiner(cellA, cellB);
 
 } //applyStarters
 
@@ -169,11 +174,11 @@ function setupDoubleTap(cellData) {
         if (now - cellData.lastTap < 280) {
             if (cellData.recognized && !cellData.starter) {
 
-      // ⭐ FIX: reset recognized BEFORE clearing
+		// ⭐ FIX: reset recognized BEFORE clearing
 		cellData.recognized = false;
 		
-//		clearCell(cellData);
-		        propagateClear(cellData.number);
+		//		clearCell(cellData);
+		propagateClear(cellData.number);
             }
         }
         cellData.lastTap = now;
@@ -228,7 +233,7 @@ function attachAlphabetClickFill(cellData) {
 }//attachAlphabetClickFill
 */
 
-    function getPos(canvas, evt) {
+function getPos(canvas, evt) {
       const rect = canvas.getBoundingClientRect();
       const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
       const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
@@ -236,18 +241,24 @@ function attachAlphabetClickFill(cellData) {
         x: (clientX - rect.left) * (canvas.width / rect.width),
         y: (clientY - rect.top) * (canvas.height / rect.height)
       };
-    }
+}
 
 function setupDrawing(cellData) {
+
+//    cLog("setupDrawing",joinerMode);   
+    
     const { canvas, ctx } = cellData;
 
     // Canvas should NOT block joiner gestures by default
-    canvas.style.pointerEvents = "none";
+//    canvas.style.pointerEvents = "none";
     
     const start = (e) => {
 
-	if (joinIsDragging) return;   // <-- prevents drawing during join gesture
+//	cLog("at start of drawing");
 	
+//	if (joinIsDragging) return;   // <-- prevents drawing during join gesture
+	if (joinerMode) return;
+
 	cellData.isTap = true;
 	
 	// If we're in "alphabet paste" mode, don't draw — let click handler run
@@ -273,7 +284,9 @@ function setupDrawing(cellData) {
     
     const move = (e) => {
 	
-	
+	// ⭐ Block drawing during joiner mode
+        if (joinerMode) return;
+
         if (!cellData.drawing || cellData.recognized) return;
 	
 	// Movement detected → this is a stroke, not a tap
@@ -287,9 +300,18 @@ function setupDrawing(cellData) {
         ctx.stroke();
         cellData.lastX = pos.x;
         cellData.lastY = pos.y;
+
+
+	let inactivityDelay = 1500; // 1.5 seconds
+	clearTimeout(cellData.timer);
+	cellData.timer = setTimeout(() => recognizeCell(cellData), inactivityDelay);
+
     };
     
     const end = () => {
+
+	// ⭐ Block drawing during joiner mode
+        if (joinerMode) return;
 	
 	// If alphabet mode, do NOT trigger OCR
 	if (selectedLetter) return;
@@ -310,9 +332,11 @@ function setupDrawing(cellData) {
         canvas.style.pointerEvents = "none";
 
         clearTimeout(cellData.timer);
+
+	let inactivityDelay = 1500; // or whatever you currently use
         cellData.timer = setTimeout(() => recognizeCell(cellData), inactivityDelay);
     };
-    
+   
     canvas.onmousedown = start;
     canvas.onmousemove = move;
     window.addEventListener('mouseup', end);
@@ -324,7 +348,7 @@ function setupDrawing(cellData) {
     
 }// setupDrawing
 
-
+// character OCR recognition main routine
 async function recognizeCell(cellData) {
       if (selectedLetter) return;   // alphabet mode → skip OCR
 
@@ -350,55 +374,75 @@ async function recognizeCell(cellData) {
     try {
         const processed = preprocessForOCR(canvas);
 
-        const result = await Tesseract.recognize(
-            processed,
-            'eng',
-            { tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
-	      classify_enable_learning: 1,
-              classify_enable_adaptive_matcher: 1,
-              tessedit_enable_dict: 1
-	    }
-        );
+	const result = await Tesseract.recognize(processed, 'eng', {
+	    tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+	    tessedit_ocr_engine_mode: 1,   // OEM_LSTM_ONLY
+	    tessedit_pageseg_mode: 10     // Single character
+	});
 
-/*
+	const confidence = result.data.confidence;
+//	cLog(`Confidence: ${confidence}`);
+	
         // Extract symbol data
         const symbols = result.data.symbols;
         const sym = symbols && symbols[0];
 
-	console.log("SYMBOL:", sym);
-	console.log("CHOICES:", sym.choices);
-	console.log("ALTERNATES:", sym.alternates);
-	console.log("PROPERTIES:", sym.properties);
-*/
-	const symbols = result.data.symbols;
-const sym = symbols && symbols[0];
+//	cLog(sym,sym.choices,sym.alternates,sym.properties);
+//	
+//	console.log("SYMBOL:", sym);
+//	console.log("CHOICES:", sym.choices);
+//	console.log("ALTERNATES:", sym.alternates);
+//	console.log("PROPERTIES:", sym.properties);
 
 //console.log("SYMBOL:", sym);
 
-if (!sym) {
-    showAlertWithDrawing(canvas);
-    statusEl.textContent = 'Could not recognize.';
-    clearCell(cellData);
-    return;
-}
-
+	if (!sym) {
+	    showAlertWithDrawing(canvas);
+	    statusEl.textContent = 'Could not recognize.';
+	    clearCell(cellData);
+	    return;
+	}
+	
 //console.log("CHOICES:", sym.choices || []);
 //console.log("ALTERNATES:", sym.alternates || []);
 //console.log("PROPERTIES:", sym.properties || {});
-
+/*
         if (!sym) {
             showAlertWithDrawing(canvas);
             statusEl.textContent = 'Could not recognize.';
             clearCell(cellData);
             return;
         }
-
+*/
         // Primary guess
-        const primary = sym.text.toUpperCase();
+        let primary = sym.text.toUpperCase();
+	
+//	cLog("Primary guess: ",primary);
+	//autocorrect
+	// future move to worker in utils
+	if (confidence > 50){ 
+	    if (primary === "0") primary = "O";
+	    if (primary === "1") primary = "L";
+	    if (primary === "|") primary = "I";
+//	    if (primary == "(" ) primary = "L";
+	    if (primary === "\\" ) primary = "L";
+	    if (primary === "{" ) primary = "L";
+	    if (primary === "5") primary = "S";   // 5 → S
+	    if (primary === "2") primary = "Z";   // 2 → Z
+	    if (primary === "8") primary = "B";   // 8 → B (rare but happens)
+	    if (primary === "S") primary = "S";   // normalize lowercase s
+	    if (primary === "(") primary = "C";   // open paren → C
+	    if (primary === ")") primary = "C";   // close paren → C
+	    if (primary === "{") primary = "C";   // curly brace → C
+	    if (primary === "}") primary = "C";   // curly brace → C
+	    if (primary === "[") primary = "C";   // bracket → C
+	    if (primary === "]") primary = "C";   // bracket → C
+	}
 	
 	if (!/^[A-Z]$/.test(primary)) {
             showAlertWithDrawing(canvas);
-            statusEl.textContent = 'Only letters allowed.';
+            statusEl.textContent =
+		`Only letters allowed. Found: ${primary} with ${confidence}% condidence`;
             clearCell(cellData);
             return;
         }
@@ -407,6 +451,9 @@ if (!sym) {
         // Alternate guesses
         let alternatives = [];
         if (sym.choices && sym.choices.length > 1) {
+
+	    cLog("Found alernatives!");
+	    
             alternatives = sym.choices
                 .map(c => ({
                     letter: c.text.toUpperCase(),
@@ -416,8 +463,8 @@ if (!sym) {
         }
 
         // Display guesses in status bar
-        showAlternateGuesses(primary, alternatives);
-
+        showAlternateGuesses(primary, confidence, alternatives);
+	
         // Apply letter to grid + key
         placeLetter(cellData, primary, false);
         propagateLetter(cellData.number, primary);
@@ -427,17 +474,18 @@ if (!sym) {
     } catch (err) {
         console.error(err);
         showAlertWithDrawing(canvas);
-        statusEl.textContent = 'Error during recognition.';
+        statusEl.textContent = `Error during recognition. ERROR: ${err}`;
         clearCell(cellData);
 
     } finally {
         hideSpinner();
     }
-}
+}// recognizeCell
 
-function showAlternateGuesses(primary, alternatives) {
+function showAlternateGuesses(primary, confidence, alternatives) {
     if (!alternatives || alternatives.length === 0) {
-        statusEl.textContent = `Recognized: ${primary}`;
+        statusEl.textContent =
+	    `Recognized: ${primary} with ${confidence}% condidence`;
         return;
     }
 
@@ -848,44 +896,44 @@ function preprocessForOCR(canvas) {
 
 
 function buildAlphabetBar() {
-  const bar = document.getElementById('alphabetBar');
-  bar.innerHTML = '';
+    const bar = document.getElementById('alphabetBar');
+    bar.innerHTML = '';
 
     // ⭐ Move the alphabet bar in JS
-  bar.style.position = "absolute";
-  bar.style.right = "-80px";          // distance from right edge
-//  bar.style.top = "50%";             // vertical center
-//  bar.style.transform = "translateY(-50%)";
-  bar.style.display = "grid";
-  bar.style.gridTemplateColumns = "40px";  // one letter per row
-  bar.style.gridAutoRows = "40px";
+    bar.style.position = "absolute";
+    bar.style.right = "-80px";          // distance from right edge
+    //  bar.style.top = "50%";             // vertical center
+    //  bar.style.transform = "translateY(-50%)";
+    bar.style.display = "grid";
+    bar.style.gridTemplateColumns = "40px";  // one letter per row
+    bar.style.gridAutoRows = "40px";
     bar.style.gap = "4px";
-bar.style.gridTemplateColumns = "40px 40px";
-//bar.style.top = "45px";
-bar.style.transform = "none";
+    bar.style.gridTemplateColumns = "40px 40px";
+    //bar.style.top = "45px";
+    bar.style.transform = "none";
     bar.style.top = (45 + keyTop.offsetHeight + 20) + "px";
 
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-  alphabet.forEach(letter => {
-    const div = document.createElement('div');
-    div.className = 'alpha-letter';
-    div.dataset.letter = letter;
-    div.textContent = letter;
+    alphabet.forEach(letter => {
+	const div = document.createElement('div');
+	div.className = 'alpha-letter';
+	div.dataset.letter = letter;
+	div.textContent = letter;
 
-    // NEW: click to select
-    div.addEventListener('click', () => {
-      document.querySelectorAll('.alpha-letter').forEach(el => 
-        el.classList.remove('selected')
-      );
+	// NEW: click to select
+	div.addEventListener('click', () => {
+	    document.querySelectorAll('.alpha-letter').forEach(el => 
+		el.classList.remove('selected')
+	    );
 
-      div.classList.add('selected');
-      selectedLetter = letter;
+	    div.classList.add('selected');
+	    selectedLetter = letter;
+	});
+
+	bar.appendChild(div);
     });
-
-    bar.appendChild(div);
-  });
-}
+}//buildAlphabetBar
 
 function markAlphabetUsed(letter) {
   const div = document.querySelector(`.alpha-letter[data-letter="${letter}"]`);

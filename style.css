@@ -220,9 +220,26 @@
   transition: opacity 0.2s, text-decoration 0.2s;
 }
 
+/*
 .alpha-letter.used {
   opacity: 0.35;
   text-decoration: line-through;
+}
+*/
+.alpha-letter.used {
+  position: relative;
+  opacity: 0.4;
+}
+
+.alpha-letter.used::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 2px;
+  background: red;
+  transform: rotate(-45deg);
 }
 
 #gridWrapper {
@@ -340,6 +357,17 @@
   align-items: center;
 }
 
+#joinerBtn.active {
+  background: #333;
+  color: white;
+}
+
+.joiner-selected {
+  outline: 3px solid orange;
+}
+
+/*
 .cell canvas {
   pointer-events: none;
 }
+*/
