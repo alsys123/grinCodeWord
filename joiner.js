@@ -61,24 +61,50 @@ function clearHighlight(cell) {
 }
 
 function storeJoiner(a, b) {
-    joiners.push({ a: a.number, b: b.number, element: joinerLayer.lastChild });
+//    joiners.push({ a: a.number, b: b.number, element: joinerLayer.lastChild });
+    joiners.push({
+    a: { row: a.row, col: a.col },
+    b: { row: b.row, col: b.col },
+    element: joinerLayer.lastChild
+});
+
 }
 
 function joinerExists(a, b) {
 //    cLog("joinerExists");
+
     
+//    return joiners.some(j =>
+//        (j.a === a.number && j.b === b.number) ||
+//        (j.a === b.number && j.b === a.number)
+//    );
+
+    //    return joiner;
+
     return joiners.some(j =>
-        (j.a === a.number && j.b === b.number) ||
-        (j.a === b.number && j.b === a.number)
+        (j.a.row === a.row && j.a.col === a.col &&
+         j.b.row === b.row && j.b.col === b.col) ||
+
+        (j.a.row === b.row && j.a.col === b.col &&
+         j.b.row === a.row && j.b.col === a.col)
     );
+
+
 }
 
 function removeJoiner(a, b) {
+//    const idx = joiners.findIndex(j =>
+//        (j.a === a.number && j.b === b.number) ||
+//        (j.a === b.number && j.b === a.number)
+//    );
     const idx = joiners.findIndex(j =>
-        (j.a === a.number && j.b === b.number) ||
-        (j.a === b.number && j.b === a.number)
+	(j.a.row === a.row && j.a.col === a.col &&
+	 j.b.row === b.row && j.b.col === b.col) ||
+	    
+	(j.a.row === b.row && j.a.col === b.col &&
+	 j.b.row === a.row && j.b.col === a.col)
     );
-
+    
     if (idx >= 0) {
         joinerLayer.removeChild(joiners[idx].element);
         joiners.splice(idx, 1);

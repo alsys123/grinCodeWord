@@ -320,7 +320,7 @@ function setupDrawing(cellData) {
 	if (cellData.isTap) {
 
 	    // ⭐ Disable canvas pointer events again
-            canvas.style.pointerEvents = "none";
+//??            canvas.style.pointerEvents = "none";
 	    return;
 
 	}
@@ -329,14 +329,15 @@ function setupDrawing(cellData) {
         cellData.drawing = false;
 
 	// ⭐ Disable canvas pointer events again
-        canvas.style.pointerEvents = "none";
+//??        canvas.style.pointerEvents = "none";
 
         clearTimeout(cellData.timer);
 
 	let inactivityDelay = 1500; // or whatever you currently use
         cellData.timer = setTimeout(() => recognizeCell(cellData), inactivityDelay);
     };
-   
+
+    /*
     canvas.onmousedown = start;
     canvas.onmousemove = move;
     window.addEventListener('mouseup', end);
@@ -345,6 +346,11 @@ function setupDrawing(cellData) {
     canvas.ontouchmove = move;
     window.addEventListener('touchend', end);
     window.addEventListener('touchcancel', end);
+    */
+canvas.addEventListener("pointerdown", start);
+canvas.addEventListener("pointermove", move);
+canvas.addEventListener("pointerup", end);
+canvas.addEventListener("pointercancel", end);
     
 }// setupDrawing
 
@@ -424,6 +430,7 @@ async function recognizeCell(cellData) {
 	    if (primary === "0") primary = "O";
 	    if (primary === "1") primary = "L";
 	    if (primary === "|") primary = "I";
+	    if (primary === "/") primary = "I";
 //	    if (primary == "(" ) primary = "L";
 	    if (primary === "\\" ) primary = "L";
 	    if (primary === "{" ) primary = "L";
@@ -545,7 +552,7 @@ function positionKeyTop() {
   kt.style.position = "absolute";
 
     // Position: right side of wrapper
-  kt.style.left = (wrapper.offsetWidth - kt.offsetWidth - 50) + "px";
+    kt.style.left = ((wrapper.offsetWidth - kt.offsetWidth) - 150) + "px"; // was -50
 
   // Position: top of wrapper
   kt.style.top = "45px";
@@ -566,7 +573,7 @@ function positionKeyBottom() {
   kb.style.position = "absolute";
 
   // Position: right side of wrapper
-  kb.style.left = (wrapper.offsetWidth - kb.offsetWidth -10) + "px";
+    kb.style.left = ((wrapper.offsetWidth - kb.offsetWidth) -110) + "px"; // was -10
 
   // Position: top of wrapper (adjust as needed)
   kb.style.top = "45px";
@@ -901,21 +908,38 @@ function buildAlphabetBar() {
 
     // ⭐ Move the alphabet bar in JS
     bar.style.position = "absolute";
-    bar.style.right = "-80px";          // distance from right edge
+    bar.style.right = "0px";          // distance from right edge
     //  bar.style.top = "50%";             // vertical center
     //  bar.style.transform = "translateY(-50%)";
     bar.style.display = "grid";
-    bar.style.gridTemplateColumns = "40px";  // one letter per row
+//    bar.style.gridTemplateColumns = "40px";  // one letter per row
+    bar.style.gridTemplateColumns = "40px 40px";
     bar.style.gridAutoRows = "40px";
     bar.style.gap = "4px";
-    bar.style.gridTemplateColumns = "40px 40px";
+//    bar.style.gridAutoFlow = "column";            // ⭐ fill top-to-bottom
+//    bar.style.gridTemplateColumns = "40px 40px";
     //bar.style.top = "45px";
     bar.style.transform = "none";
     bar.style.top = (45 + keyTop.offsetHeight + 20) + "px";
 
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-    alphabet.forEach(letter => {
+    // sort the letters
+   const cols = 2;
+    const rows = Math.ceil(alphabet.length / cols);
+    const ordered = [];
+
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            const idx = r + c * rows;
+            if (idx < alphabet.length) {
+                ordered.push(alphabet[idx]);
+            }
+        }
+    }
+    
+//    alphabet.forEach(letter => {
+    ordered.forEach(letter => {
 	const div = document.createElement('div');
 	div.className = 'alpha-letter';
 	div.dataset.letter = letter;
@@ -1102,11 +1126,31 @@ document.getElementById("helpBtn").addEventListener("click", () => {
 
 
 document.getElementById("saveBtn").addEventListener("click", () => {
+
+    // Hide unwanted UI
+    const checkBtn   = dei("checkBtn");
+    const fillAllBtn = dei("fillAllBtn");
+    checkBtn.style.display = "none";
+    fillAllBtn.style.display = "none";
+
+//    const wrapper = document.querySelector(".wrapper");
+//    const alphabetBar = dei("alphabetBar");
+    // temporarily move it
+//    wrapper.appendChild(alphabetBar);
+    
   html2canvas(document.querySelector(".wrapper"), {
     backgroundColor: "#ffffff",
     scale: 2
   }).then(canvas => {
-    const dataURL = canvas.toDataURL("image/png");
+
+      // Restore UI
+      checkBtn.style.display = "";
+      fillAllBtn.style.display = "";
+
+      // move it back
+//      document.body.appendChild(alphabetBar);
+      
+      const dataURL = canvas.toDataURL("image/png");
     const parts = dataURL.split(',');
     const mime = parts[0].match(/:(.*?);/)[1];
     const binary = atob(parts[1]);
