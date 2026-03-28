@@ -1,0 +1,9 @@
+{
+  "files": [
+    "puzzleData.json",
+    "puzzleData-set1.json",
+      "puzzleData-set2.json",
+      "puzzleData-set3.json",
+    "puzzleData-set4.json"
+  ]
+}
