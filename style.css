@@ -363,8 +363,14 @@
   color: white;
 }
 
+/*
 .joiner-selected {
   outline: 3px solid orange;
+}
+*/
+.joiner-selected {
+    outline: 3px solid #00aaff;
+    outline-offset: -3px;
 }
 
 /*

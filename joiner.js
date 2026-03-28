@@ -6,10 +6,18 @@ let joinerMode = false;
 let joinStartCell = null;
 let joiners = [];  // array of {a:number, b:number, element:div}
 
-document.getElementById("joinerBtn").addEventListener("click", () => {
+document.getElementById("joinerBtn").addEventListener("click", (e) => {
+    e.stopPropagation();   // ⭐ prevents click from hitting cells
+    e.preventDefault();    // ⭐ prevents default focus/blur behavior
+    
     joinerMode = !joinerMode;
 
-    joinStartCell = null; // reset any partial selection
+     // If turning OFF joiner mode, clear any partial selection
+    if (!joinerMode && joinStartCell) {
+        clearHighlight(joinStartCell.cell);
+        joinStartCell = null;
+    }
+//    joinStartCell = null; // reset any partial selection
 
     document.getElementById("joinerBtn").classList.toggle("active", joinerMode);
 
@@ -28,9 +36,11 @@ function handleJoinerTap(cellData) {
         return;
     }
 
+    // ** joinStartCell has a value at this point we have tapped the start already
+    
     // Second tap → attempt join
     const start = joinStartCell;
-    const end = cellData;
+    const end   = cellData;
 
     clearHighlight(start.cell);
 
