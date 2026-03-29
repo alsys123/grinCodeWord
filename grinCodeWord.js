@@ -938,7 +938,7 @@ function buildAlphabetBar() {
         }
     }
     
-//    alphabet.forEach(letter => {
+    //    alphabet.forEach(letter => {
     ordered.forEach(letter => {
 	const div = document.createElement('div');
 	div.className = 'alpha-letter';
@@ -947,6 +947,10 @@ function buildAlphabetBar() {
 
 	// NEW: click to select
 	div.addEventListener('click', () => {
+
+	    // ⭐ Block alphabet selection while joiner tool is active
+	    if (joinerMode) return;
+	    
 	    document.querySelectorAll('.alpha-letter').forEach(el => 
 		el.classList.remove('selected')
 	    );
@@ -1172,30 +1176,30 @@ document.getElementById("saveBtn").addEventListener("click", () => {
 });
 
 gridEl.addEventListener('click', (e) => {
-  // No letter selected? Nothing to do.
-  if (!selectedLetter) return;
-
-  // Find the cell div that was clicked (canvas, letter, etc. all bubble up)
-  const cellDiv = e.target.closest('.cell');
-  if (!cellDiv) return;
-
-  // Find the matching cellData
-  const cellData = cells.find(cd => cd.cell === cellDiv);
-  if (!cellData) return;
-
-  // Don’t overwrite starters
-  if (cellData.starter) return;
-
-  // Paste the letter and propagate
-  placeLetter(cellData, selectedLetter, false);
-  propagateLetter(cellData.number, selectedLetter);
-  cellData.recognized = true;
-
-  // Clear alphabet selection
-  document.querySelectorAll('.alpha-letter').forEach(el =>
-    el.classList.remove('selected')
-  );
-  selectedLetter = null;
+    // No letter selected? Nothing to do.
+    if (!selectedLetter) return;
+    
+    // Find the cell div that was clicked (canvas, letter, etc. all bubble up)
+    const cellDiv = e.target.closest('.cell');
+    if (!cellDiv) return;
+    
+    // Find the matching cellData
+    const cellData = cells.find(cd => cd.cell === cellDiv);
+    if (!cellData) return;
+    
+    // Don’t overwrite starters
+    if (cellData.starter) return;
+    
+    // Paste the letter and propagate
+    placeLetter(cellData, selectedLetter, false);
+    propagateLetter(cellData.number, selectedLetter);
+    cellData.recognized = true;
+    
+    // Clear alphabet selection
+    document.querySelectorAll('.alpha-letter').forEach(el =>
+	el.classList.remove('selected')
+    );
+    selectedLetter = null;
 });
 
 // *** Previous Next Button
