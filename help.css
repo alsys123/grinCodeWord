@@ -3,27 +3,6 @@
    ------------------------------ */
 
 
-#checkBtn {
-    margin-top: 0px;
-    width: 100px;
-    padding: 0px;
-    background: #0077cc;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    font-size: 15px;
-    cursor: pointer;
-    font-weight: 600;
-    position: absolute;
-/*    top: 10px;
-    left: 10px;
-    z-index: 999;
-    height: 40px; */
-}
-
-#checkBtn:hover {
-      background: #005fa3;
-}
 
 #helpPanel {
     position: absolute;
@@ -84,7 +63,7 @@
 }
 
 .help-buttons button {
-  padding: 6px 10px;
+  padding: 6px 5px;
   font-size: 14px;
 }
 
@@ -183,3 +162,77 @@ body.drawing-enabled::after {
 #helpBtn { background: rgba(255,0,0,0.3); }
 #joinerBtn { background: rgba(0,0,255,0.3); }
 */
+#enableDrawingBtn {
+/*    margin-top: 0px;
+    width: 100px;
+*/
+    /*    top: 420px; */
+    bottom: 15%;
+    left: 175px;
+    padding: 0px;
+    background: brown;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    font-size: 15px;
+    cursor: pointer;
+    font-weight: 600;
+    position: absolute;
+/*    top: 10px;
+    left: 10px;
+    z-index: 999;
+    height: 40px; */
+}
+
+#enableDrawingBtn:hover {
+      background: #005fa3;
+}
+
+
+#fillAllBtn {
+/*    margin-top: 0px;
+    width: 100px;
+*/
+        bottom: 10%;
+    left: 40%;
+    padding: 0px;
+    background: green;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    font-size: 15px;
+    cursor: pointer;
+    font-weight: 600;
+    position: absolute;
+/*    top: 10px;
+    left: 10px;
+    z-index: 999;
+    height: 40px; */
+}
+
+#fillAllBtn:hover {
+      background: #005fa3;
+}
+
+#checkBtn {
+    bottom: 15%;
+    margin-top: 0px;
+    width: 120px;
+    padding: 0px;
+    background: #0077cc;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    font-size: 15px;
+    cursor: pointer;
+    font-weight: 600;
+    position: absolute;
+/*    top: 10px;
+    left: 10px;
+    z-index: 999;
+    height: 40px; */
+}
+
+#checkBtn:hover {
+      background: #005fa3;
+}
