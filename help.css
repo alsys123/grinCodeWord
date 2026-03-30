@@ -1,0 +1,185 @@
+ /* ------------------------------
+   HELP CSS
+   ------------------------------ */
+
+
+#checkBtn {
+    margin-top: 0px;
+    width: 100px;
+    padding: 0px;
+    background: #0077cc;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    font-size: 15px;
+    cursor: pointer;
+    font-weight: 600;
+    position: absolute;
+/*    top: 10px;
+    left: 10px;
+    z-index: 999;
+    height: 40px; */
+}
+
+#checkBtn:hover {
+      background: #005fa3;
+}
+
+#helpPanel {
+    position: absolute;
+    top: 60px;
+    left: 20px;
+    background: yellow;
+    border: 2px solid #0002;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    z-index: 1000;
+}
+
+.hidden {
+    display: none;
+}
+
+#helpPanel img {
+    width: 200px;
+    border: 1px solid red;
+}
+
+
+#helpPanel.help {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 320px;
+  background: #fff;
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 12px;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+#helpPanel.hidden {
+  display: none;
+}
+
+.help-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.help-content {
+  margin-top: 10px;
+  min-height: 120px;
+}
+
+.help-buttons {
+  margin-top: 12px;
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.help-buttons button {
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
+.help-actions {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.help-actions button {
+  padding: 8px 12px;
+  font-size: 15px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #eee;
+  cursor: pointer;
+}
+
+.help-actions button:hover {
+  background: #ddd;
+}
+
+/*
+.help-icon {
+    position: absolute;
+    left: 10px;
+  top: 10px;
+  left: -500px;
+
+  background: none;
+  border: none;
+
+  color: #ffb700;        
+  font-size: 32px;
+  font-weight: bold;
+
+  cursor: pointer;
+  z-index: 999;
+
+  text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+  transition: transform 0.15s ease, color 0.15s ease;
+
+  display: inline-block;  
+  width: auto;            
+  height: auto;           
+  line-height: 1;        
+  padding: 0;
+}
+*/
+.help-icon {
+  all: unset;
+  position: absolute;
+
+  color: #ffb700;
+  font-size: 32px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 999;
+
+  display: inline-block;
+  line-height: 1;
+  padding: 0;
+  margin: 0;
+
+  text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+
+.help-icon:hover {
+  color: #ffdd33;        
+  transform: scale(1.15);
+}
+
+.help-icon:active {
+  color: #ffb700;       
+  transform: scale(0.95);
+}
+
+
+body.drawing-enabled::after {
+  content: "DRAWING MODE";
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: #f7c600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #333;
+}
+
+/*
+#helpBtn { background: rgba(255,0,0,0.3); }
+#joinerBtn { background: rgba(0,0,255,0.3); }
+*/

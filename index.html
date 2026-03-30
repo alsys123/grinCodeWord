@@ -1,78 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Codeword Handwriting Puzzle V7</title>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Codeword Handwriting Puzzle V7</title>
 
-  <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="help.css">
 
-  <!--  <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
--->
+    <!--  <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+	  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+	  -->
 
-</head>
-<body>
-  
-  <div class="wrapper">
+  </head>
+  <body>
     
-    <div id="alert">LETTER NOT RECOGNIZED — TRY AGAIN</div>
-    
-    <h1 id="puzzleTitle">Codeword Handwriting Puzzle</h1>
-    
-    <div id="grid" class="grid"></div>
-    
-    <!--    <div class="hint" id="hintText"></div> -->
-    
-    <div id="keyTop" class="key-grid"></div>
-    <div id="keyBottom" class="key-grid"></div>
-    
-    <button id="checkBtn">Check Answers</button>
-    
-    <button id="fillAllBtn">Fill All Answers</button>
-    
-    <div class="status" id="status">
-      Write a letter in any white square. Double‑tap a letter to clear it.
-    </div>
-    
-    <div id="alphabetBar"></div>
-    
-  </div> <!-- wrapper end -->
-  
-  <div id="ocrSpinner" class="spinner" style="display:none;"></div>
+    <div class="wrapper">
+      
+      <div id="alert">LETTER NOT RECOGNIZED — TRY AGAIN</div>
+      
+      <h1 id="puzzleTitle">Codeword Handwriting Puzzle</h1>
+      
+      <div id="grid" class="grid"></div>
+      
+      <!--    <div class="hint" id="hintText"></div> -->
+      
+      <div id="keyTop" class="key-grid"></div>
+      <div id="keyBottom" class="key-grid"></div>
 
-   <!-- for the joiner only ... investigate fixing the grid name-->
-  <div id="gridWrapperJoiner">
+      <!--
+	  <button id="checkBtn">Check Answers</button>
+	  
+	  <button id="fillAllBtn">Fill All Answers</button>
+	  -->
+	  
+	  <div class="status" id="status">
+	    Write a letter in any white square. Double‑tap a letter to clear it.
+	  </div>
+	  
+	  <div id="alphabetBar"></div>
+	  
+    </div> <!-- wrapper end -->
+    
+    <div id="ocrSpinner" class="spinner" style="display:none;"></div>
+
+    <!-- for the joiner only ... investigate fixing the grid name-->
+    <div id="gridWrapperJoiner">
       <div id="gridJoiner"></div>
       <div id="joinerLayer"></div>
     </div>
 
-<div id="puzzleSelectorWrapper">
-  <label id="puzzleLabel">Puzzle #:</label>
-  <input id="puzzleInput" type="number" min="1" step="1" placeholder="1" maxlength="4">
+    <div id="puzzleSelectorWrapper">
+      <label id="puzzleLabel">Puzzle #:</label>
+      <input id="puzzleInput" type="number" min="1" step="1" placeholder="1" maxlength="4">
 
-  <button id="prevPuzzle">Previous</button>
-  <button id="nextPuzzle">Next</button>
-</div>
+      <button id="prevPuzzle">Previous</button>
+      <button id="nextPuzzle">Next</button>
+    </div>
 
-<button id="helpBtn">Help</button>
-<div id="helpPanel" class="hidden"></div>
+    <!--<button id="helpBtn">Help & Settings</button> -->
+    <button id="helpBtn" class="help-icon">?</button>
 
-<div id="puzzleContainer">
-    <!-- your puzzle grid -->
-    <!-- your key -->
-    <!-- your used letters -->
-</div>
-<button id="saveBtn">Save Puzzle</button>
-<button id="joinerBtn">Join</button>
+    <!--    <div id="helpPanel" class="hidden"></div> -->
 
-  <script src="https://unpkg.com/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <div id="helpPanel" class="help hidden">
+      <div class="help-header">
+	<h2>Help & Settings</h2>
+	<button id="helpCloseBtn">✕</button>
+      </div>
+      
+      <div class="help-content">
+	<!-- dynamic content goes here -->   
+      </div>
+      
+      <div class="help-actions">
+	<button id="checkBtn">Check Answers</button>
+	<button id="fillAllBtn">Fill All Answers</button>
+	<button id="enableDrawingBtn">Enable Drawing Mode</button>
+      </div>
+      <div class="help-buttons">
+	<button data-help="drawing">Drawing Guide</button>
+	<button data-help="letters">Letter Shapes</button>
+	<button data-help="joiners">Joiner Tool</button>
+      </div>
+    </div>
 
-<!--  <script src="puzzleData.js"></script> -->
-  <script src="utils.js"></script>
-  <script src="layout.js"></script>
-  <script src="grinCodeWord.js"></script>
-  <script src="joiner.js"></script>
-  
-</body>
+
+    <div id="puzzleContainer">
+      <!-- your puzzle grid -->
+      <!-- your key -->
+      <!-- your used letters -->
+    </div>
+    <button id="saveBtn">Save Puzzle</button>
+    <button id="joinerBtn">Join</button>
+
+    <script src="https://unpkg.com/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+    <!--  <script src="puzzleData.js"></script> -->
+    <script src="help.js"></script>
+    <script src="utils.js"></script>
+    <script src="layout.js"></script>
+    <script src="grinCodeWord.js"></script>
+    <script src="joiner.js"></script>
+    
+  </body>
 </html>
