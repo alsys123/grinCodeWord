@@ -271,6 +271,8 @@ function setupDrawing(cellData) {
 	//	if (joinIsDragging) return;   // <-- prevents drawing during join gesture
 	if (joinerMode) return;
 
+	if (dictionaryLookupEnabled) return;
+
 	cellData.isTap = true;
 	
 	// If we're in "alphabet paste" mode, don't draw — let click handler run
@@ -1077,6 +1079,8 @@ document.getElementById("saveBtn").addEventListener("click", () => {
 gridEl.addEventListener('click', (e) => {
 
     checkDictionaryLookup(e);
+
+    if (dictionaryLookupEnabled) return;
     
     // No letter selected? Nothing to do.
     if (!selectedLetter) return;

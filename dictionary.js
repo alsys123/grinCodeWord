@@ -1,3 +1,8 @@
+
+ /* ------------------------------
+   DICTIONARY
+   ------------------------------ */
+
 function getHorizontalWord(cellData) {
     const row = cellData.row;
     const col = cellData.col;
