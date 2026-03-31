@@ -182,6 +182,7 @@ function applyStarters() {
 
 function setupDoubleTap(cellData) {
     const handler = () => {
+		if (dictionaryLookupEnabled) return;
         const now = Date.now();
         if (now - cellData.lastTap < 280) {
             if (cellData.recognized && !cellData.starter) {
