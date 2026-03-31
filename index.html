@@ -76,6 +76,7 @@
 	<button id="checkBtn">Check Answers</button>
 	<button id="fillAllBtn">Fill All Answers</button>
 	<button id="enableDrawingBtn">Enable Drawing Mode</button>
+	<button id="enableDictionaryBtn">Enable Dictionary Lookup</button>
       </div>
       <div class="help-buttons">
 	<button data-help="drawing">Drawing Guide</button>
@@ -90,6 +91,13 @@
       <!-- your key -->
       <!-- your used letters -->
     </div>
+
+ <div id="dictionaryPanel" class="hidden dictionary-popup">
+    <button id="dictCloseBtn" class="dict-close">×</button>
+    <div id="dictionaryContent"></div>
+</div>
+
+
     <button id="saveBtn">Download Puzzle</button>
     <button id="joinerBtn">Toggle Joiner</button>
 
@@ -97,6 +105,8 @@
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
     <!--  <script src="puzzleData.js"></script> -->
+    
+    <script src="dictionary.js"></script>
     <script src="help.js"></script>
     <script src="utils.js"></script>
     <script src="layout.js"></script>

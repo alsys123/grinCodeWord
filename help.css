@@ -66,14 +66,22 @@
   padding: 6px 5px;
   font-size: 14px;
 }
-
+.help-actions {
+  margin-top: 15px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;   /* ⭐ two equal columns */
+  gap: 10px;                        /* spacing between buttons */
+  width: 100%;
+}
+/*
 .help-actions {
   margin-top: 15px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-
+*/
+/*
 .help-actions button {
   padding: 8px 12px;
   font-size: 15px;
@@ -86,6 +94,7 @@
 .help-actions button:hover {
   background: #ddd;
 }
+*/
 
 /*
 .help-icon {
@@ -158,15 +167,75 @@ body.drawing-enabled::after {
   color: #333;
 }
 
+
+body.dictionaryLookup-enabled::before {
+  content: "DICTIONARY LOOKUP MODE";
+  position: fixed;
+  bottom: 50px;
+  right: 20px;
+  background: #f7c600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #333;
+  z-index: 9999;        /* ⭐ sits above everything */  
+}
+
+.dictionary-popup {
+    position: fixed;
+    left: 50%;
+    top: 20%;
+    transform: translateX(-50%);
+    background: #fff;
+    padding: 20px;
+    width: 60%;
+    max-height: 60%;
+    overflow-y: auto;
+    border: 2px solid #333;
+    border-radius: 8px;
+    z-index: 2000;
+}
+
+.dict-close {
+    all: unset;
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #444;
+    padding: 4px;
+}
+
+.dict-close:hover {
+    color: #000;
+    transform: scale(1.2);
+}
+
 /*
-#helpBtn { background: rgba(255,0,0,0.3); }
-#joinerBtn { background: rgba(0,0,255,0.3); }
-*/
+#enableDictionaryBtn {
+    bottom: 15%;
+    margin-top: 0px;
+    width: 120px;
+    padding: 0px;
+    background: #0077cc;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    font-size: 15px;
+    cursor: pointer;
+    font-weight: 600;
+    position: absolute;
+}
+
+#enableDictionaryBtn:hover {
+      background: #005fa3;
+}
+
 #enableDrawingBtn {
-/*    margin-top: 0px;
-    width: 100px;
-*/
-    /*    top: 420px; */
+
     bottom: 15%;
     left: 175px;
     padding: 0px;
@@ -178,10 +247,7 @@ body.drawing-enabled::after {
     cursor: pointer;
     font-weight: 600;
     position: absolute;
-/*    top: 10px;
-    left: 10px;
-    z-index: 999;
-    height: 40px; */
+
 }
 
 #enableDrawingBtn:hover {
@@ -190,9 +256,6 @@ body.drawing-enabled::after {
 
 
 #fillAllBtn {
-/*    margin-top: 0px;
-    width: 100px;
-*/
         bottom: 10%;
     left: 40%;
     padding: 0px;
@@ -204,10 +267,7 @@ body.drawing-enabled::after {
     cursor: pointer;
     font-weight: 600;
     position: absolute;
-/*    top: 10px;
-    left: 10px;
-    z-index: 999;
-    height: 40px; */
+
 }
 
 #fillAllBtn:hover {
@@ -227,12 +287,35 @@ body.drawing-enabled::after {
     cursor: pointer;
     font-weight: 600;
     position: absolute;
-/*    top: 10px;
-    left: 10px;
-    z-index: 999;
-    height: 40px; */
 }
 
 #checkBtn:hover {
       background: #005fa3;
+}
+*/
+
+#enableDictionaryBtn { background: #0077cc; color: white; }
+#enableDrawingBtn    { background: brown;   color: white; }
+#checkBtn            { background: #0077cc; color: white; }
+#fillAllBtn          { background: green;   color: white; }
+
+#enableDictionaryBtn:hover { background: #005fa3; }
+#enableDrawingBtn:hover    { background: #8b0000; }
+#checkBtn:hover            { background: #005fa3; }
+#fillAllBtn:hover          { background: #006600; }
+
+.help-actions button {
+  padding: 10px 12px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #eee;
+  cursor: pointer;
+  width: 100%;     /* ⭐ fills its grid cell */
+  text-align: center;
+}
+
+.help-actions button:hover {
+  background: #ddd;
 }

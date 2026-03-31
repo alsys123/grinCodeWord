@@ -6,6 +6,7 @@ let PUZZLES = {};   // will be filled from JSON
 let selectedLetter = null;
 
 let drawingEnabled = false;
+let dictionaryLookupEnabled = false;
 
 /*
   async function loadPuzzleData() {
@@ -13,6 +14,15 @@ let drawingEnabled = false;
   PUZZLES = await response.json();
   }
 */
+
+let DICT = null;
+
+async function loadDictionary() {
+    const text = await fetch("websters/WebstersUnabridgedDictionaryVarious.txt")
+        .then(r => r.text());
+
+    DICT = text;
+}
 
 async function loadAllPuzzleSets() {
     const manifest = await fetch("data/manifest.json").then(r => r.json());
@@ -983,6 +993,9 @@ loadPuzzle(1);
 window.addEventListener("DOMContentLoaded", async () => {
     //    await loadPuzzleData();          // load external file
     await loadAllPuzzleSets();
+
+    await loadDictionary();   // ⭐ load dictionary here
+
     document.getElementById("puzzleInput").value = 1;
     loadPuzzle(1);                   // now safe to load
 });
@@ -1062,6 +1075,9 @@ document.getElementById("saveBtn").addEventListener("click", () => {
 });
 
 gridEl.addEventListener('click', (e) => {
+
+    checkDictionaryLookup(e);
+    
     // No letter selected? Nothing to do.
     if (!selectedLetter) return;
     
@@ -1072,7 +1088,8 @@ gridEl.addEventListener('click', (e) => {
     // Find the matching cellData
     const cellData = cells.find(cd => cd.cell === cellDiv);
     if (!cellData) return;
-    
+
+
     // Don’t overwrite starters
     if (cellData.starter) return;
     
@@ -1087,6 +1104,7 @@ gridEl.addEventListener('click', (e) => {
     );
     selectedLetter = null;
 });
+
 
 // *** Previous Next Button
 //const puzzleInput = document.getElementById("puzzleInput");
@@ -1120,3 +1138,4 @@ function updatePuzzleNavButtons(currentId) {
     prevBtn.disabled = currentId <= 1;
     nextBtn.disabled = currentId >= maxPuzzle;
 }
+
