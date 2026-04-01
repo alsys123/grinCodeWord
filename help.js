@@ -67,6 +67,14 @@ function loadHelpContent(topic) {
       <p>Joiners must be horizontal or vertical.</p>
     `;
     }
+    if (topic === "saving") {
+	content.innerHTML = `
+      <h3>Saving A Puzzle</h3>
+      <p>To mark a puzzle as completed and saved, press the Check Answers button.</p>
+      <p>A gree checkmark will appear in the title bar for that particular puzzle.</p>
+    `;
+    }
+
 }
 
 /* future...

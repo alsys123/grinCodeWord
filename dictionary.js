@@ -71,6 +71,12 @@ function checkDictionaryLookup(e) {
     const horiz = getHorizontalWord(cellData);
     const vert  = getVerticalWord(cellData);
 
+    clearDictionaryHighlights(); //clear all the old ones
+    
+    // ⭐ Highlight both words
+    highlightCells(horiz.positions);
+    highlightCells(vert.positions);
+
     // Choose whichever is longer (or show both)
     const best = horiz.word.length >= vert.word.length ? horiz : vert;
 
@@ -156,4 +162,52 @@ function showDictionaryPopup(wordH, defH, wordV, defV) {
 
 document.getElementById("dictCloseBtn").addEventListener("click", () => {
     document.getElementById("dictionaryPanel").classList.add("hidden");
+    clearDictionaryHighlights(); //clear all the old ones
+
 });
+
+function makeDictionaryPopupDraggable() {
+    const panel = document.getElementById("dictionaryPanel");
+    const handle = document.getElementById("dictDragHandle");
+
+    let offsetX = 0;
+    let offsetY = 0;
+    let isDragging = false;
+
+    handle.addEventListener("mousedown", (e) => {
+        isDragging = true;
+
+        // Remove centering transform so dragging works naturally
+        panel.style.transform = "none";
+
+        const rect = panel.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+
+        document.body.style.userSelect = "none";
+    });
+
+    document.addEventListener("mousemove", (e) => {
+        if (!isDragging) return;
+
+        panel.style.left = (e.clientX - offsetX) + "px";
+        panel.style.top  = (e.clientY - offsetY) + "px";
+    });
+
+    document.addEventListener("mouseup", () => {
+        isDragging = false;
+        document.body.style.userSelect = "";
+    });
+}
+
+function clearDictionaryHighlights() {
+    document.querySelectorAll(".dict-highlight").forEach(el =>
+        el.classList.remove("dict-highlight")
+    );
+}
+
+function highlightCells(cellList) {
+    cellList.forEach(cd => {
+        cd.cell.classList.add("dict-highlight");
+    });
+}

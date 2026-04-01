@@ -14,6 +14,7 @@ let dictionaryLookupEnabled = false;
   PUZZLES = await response.json();
   }
 */
+let currentPuzzleNumber = 1;
 
 let DICT = null;
 
@@ -165,7 +166,8 @@ function applyStarters() {
 	    propagateLetter(target.number, h.letter, true); // NEW
 
 	    markAlphabetUsed(h.letter);
-
+//	    savePuzzleState(currentPuzzleNumber);
+	    
         }
     });
 
@@ -195,6 +197,7 @@ function setupDoubleTap(cellData) {
 		
 		//		clearCell(cellData);
 		propagateClear(cellData.number);
+		savePuzzleState(currentPuzzleNumber);
             }
         }
         cellData.lastTap = now;
@@ -497,6 +500,8 @@ async function recognizeCell(cellData) {
 
         cellData.recognized = true;
 
+	savePuzzleState(currentPuzzleNumber);
+	
     } catch (err) {
         console.error(err);
         showAlertWithDrawing(canvas);
@@ -557,8 +562,9 @@ function createKeyRows() {
 }//createKeyRows
 
 
-
+// buttom check answers button
 function checkAnswers() {
+    
     cells.forEach(cd => {
         if (!cd.recognized || cd.starter) return;
 
@@ -574,7 +580,14 @@ function checkAnswers() {
             letterDiv.classList.remove('wrong');
         }
     });
-}
+
+    if (isPuzzleFullyCorrect()) {
+	markPuzzleCompleted(currentPuzzleNumber);
+	updatePuzzleListUI(currentPuzzleNumber);
+	
+    }
+
+}//checkAnswers
 
 function showAlertWithDrawing(canvas) {
     // Convert drawing to image
@@ -610,16 +623,6 @@ function showAlertWithDrawing(canvas) {
 checkBtn.addEventListener('click', checkAnswers);
 
 
-//loadPuzzle(1);
-//loadPuzzle(Math.floor(Math.random() * totalPuzzles) + 1); // random version
-
-//createGrid();
-//createKeyRows();
-
-
-
-
-
 function showSpinner() {
     document.getElementById("ocrSpinner").style.display = "inline-block";
 }
@@ -645,6 +648,7 @@ function fillAllAnswers() {
             // Fill grid cell
             placeLetter(cellData, correctLetter, isStarter);
             cellData.recognized = true;
+//	    savePuzzleState(currentPuzzleNumber);
         }
     }
 
@@ -679,6 +683,7 @@ function propagateLetter(number, letter, isStarter = false) {
 	if (cd.number === number && !cd.starter) {
 	    placeLetter(cd, letter,  isStarter);
 	    cd.recognized = true;
+	    savePuzzleState(currentPuzzleNumber);
 	}
     });
     
@@ -752,35 +757,7 @@ function handleAlphabetAfterClear(number) {
     }
 }
 
-/*
-  function propagateClear(number) {
-  let clearedLetter = null;
 
-  // Clear all grid cells with this number
-  cells.forEach(cd => {
-  if (cd.number === number && !cd.starter) {
-  if (cd.recognizedLetter) clearedLetter = cd.recognizedLetter;
-  clearCell(cd);
-  cd.recognized = false;
-  cd.recognizedLetter = null;
-  }
-  });
-
-  // Clear key cells
-  const keyCells = [...keyTop.children, ...keyBottom.children];
-  keyCells.forEach(div => {
-  const num = parseInt(div.querySelector('.number-label').textContent);
-  if (num === number) {
-  div.innerHTML = `<div class="number-label">${num}</div>`;
-  }
-  });
-
-  // If we know which letter was cleared, uncross it
-  if (clearedLetter) {
-  markAlphabetUnused(clearedLetter.toUpperCase());
-  }
-  }
-*/
 function preprocessForOCR(canvas) {
     const temp = document.createElement("canvas");
     temp.width = 100;
@@ -887,9 +864,6 @@ function isLetterStillUsed(letter) {
 // **** load the puzzle selected ***
 
 function loadPuzzle(id) {
-    //    populatePuzzleSelector();
-    //    document.getElementById('puzzleSelector').value = "1";
-    //    loadPuzzle(1);
 
     const puzzle = PUZZLES[id];
     if (!puzzle) {
@@ -918,10 +892,30 @@ function loadPuzzle(id) {
     //  buildGrid();
     applyStarters();
 
-    dei("puzzleTitle").textContent = `Codeword Handwriting Puzzle — #${id}`;
+    currentPuzzleNumber = id;
+
+    // ⭐ Restore saved progress
+    restorePuzzleState(id);
+    
+    // ⭐ Update completion checkmark
+    updatePuzzleListUI(id);
+
+    /*
+    let title = `Codeword Handwriting Puzzle — #${id}`;
+    if (isPuzzleCompleted(id)) {
+	title += " ✓";
+    }
+    dei("puzzleTitle").textContent = title;
+    */
+    
+//    dei("puzzleTitle").textContent = `Codeword Handwriting Puzzle — #${id}`;
+
     // update navigation buttons
     updatePuzzleNavButtons(id);
-}
+
+
+
+}//loadPuzzle
 
 
 function populatePuzzleSelector() {
@@ -936,19 +930,6 @@ function populatePuzzleSelector() {
     }
 }
 
-/*
-  document.getElementById('puzzleSelector').addEventListener('change', (e) => {
-  const id = parseInt(e.target.value);
-  loadPuzzle(id);
-  });
-*/
-/*
-  window.addEventListener("DOMContentLoaded", () => {
-  populatePuzzleSelector();
-  document.getElementById('puzzleSelector').value = "1";
-  loadPuzzle(1);
-  });
-*/
 
 document.getElementById("puzzleInput").addEventListener("keydown", e => {
     if (e.key === "Enter") {
@@ -989,13 +970,6 @@ puzzleInput.addEventListener("input", e => {
     }, 150);
 });
 
-/*
-// default 1
-window.addEventListener("DOMContentLoaded", () => {
-document.getElementById("puzzleInput").value = 1;
-loadPuzzle(1);
-});
-*/
 
 window.addEventListener("DOMContentLoaded", async () => {
     //    await loadPuzzleData();          // load external file
@@ -1005,35 +979,9 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("puzzleInput").value = 1;
     loadPuzzle(1);                   // now safe to load
+    makeDictionaryPopupDraggable();
 });
 
-// *** help panel ***
-
-/*
-  function showDrawingHelp() {
-  const panel = document.getElementById("helpPanel");
-  panel.innerHTML = `
-  <h3>Exact letter format</h3>
-  <img src="help/letters.png">
-  `;
-  panel.classList.remove("hidden");
-  }
-
-  let helpInitialized = false;
-
-  document.getElementById("helpBtn").addEventListener("click", () => {
-  const panel = document.getElementById("helpPanel");
-
-  if (!helpInitialized) {
-  showDrawingHelp();
-  helpInitialized = true;
-  return;
-  }
-
-  panel.classList.toggle("hidden");
-  });
-
-*/
 
 document.getElementById("saveBtn").addEventListener("click", () => {
 
@@ -1106,6 +1054,7 @@ gridEl.addEventListener('click', (e) => {
     placeLetter(cellData, selectedLetter, false);
     propagateLetter(cellData.number, selectedLetter);
     cellData.recognized = true;
+    savePuzzleState(currentPuzzleNumber);
     
     // Clear alphabet selection
     document.querySelectorAll('.alpha-letter').forEach(el =>
@@ -1148,3 +1097,116 @@ function updatePuzzleNavButtons(currentId) {
     nextBtn.disabled = currentId >= maxPuzzle;
 }
 
+// **** memory save and restore ***
+
+function savePuzzleState(puzzleNum) {
+    const state = cells.map(cd => {
+        const letter = cd.cell.querySelector(".letter")?.textContent || "";
+        return letter;
+    });
+
+    localStorage.setItem(`puzzleState_${puzzleNum}`, JSON.stringify(state));
+}
+/*
+function restorePuzzleState(puzzleNum) {
+    const saved = localStorage.getItem(`puzzleState_${puzzleNum}`);
+    if (!saved) return;
+
+    const letters = JSON.parse(saved);
+
+    letters.forEach((ltr, i) => {
+        if (!ltr) return;
+        const cd = cells[i];
+        const letterDiv = cd.cell.querySelector(".letter");
+        if (letterDiv) letterDiv.textContent = ltr;
+    });
+    }
+*/
+
+function restorePuzzleState(puzzleNum) {
+    const saved = localStorage.getItem(`puzzleState_${puzzleNum}`);
+    if (!saved) return;
+
+    const letters = JSON.parse(saved);
+
+    letters.forEach((ltr, i) => {
+        if (!ltr) return;
+        const cd = cells[i];
+        if (!cd) return;
+
+        placeLetter(cd, ltr, false);
+        cd.recognized = true;
+    });
+}
+
+/*
+function isPuzzleComplete() {
+    return cells.every(cd => {
+        const letter = cd.cell.querySelector(".letter")?.textContent || "";
+        const solution = cd.solution || "";
+        return letter === solution;
+    });
+    }
+*/
+/*
+function isPuzzleFullyCorrect() {
+    return cells.every(cd => {
+        const letter = cd.cell.querySelector(".letter")?.textContent || "";
+        const correct = solutionMap[cd.number];
+        return letter === correct;
+    });
+    }
+*/
+
+function isPuzzleFullyCorrect() {
+    let allCorrect = true;
+
+//    cLog("isPuzzleFullyCorrect");
+
+    for (const cd of cells) {
+        const letter = cd.cell.querySelector(".letter")?.textContent || "";
+        const correct = solutionMap[cd.number];
+
+        if (letter !== correct) {
+//            cLog(`Mismatch at number ${cd.number}: got ${letter}, expected ${correct}`);
+            allCorrect = false;
+            break;
+        }
+    }//for
+
+    return allCorrect;
+}
+
+function markPuzzleCompleted(puzzleNum) {
+    localStorage.setItem(`puzzleCompleted_${puzzleNum}`, "true");
+}
+
+function isPuzzleCompleted(puzzleNum) {
+    return localStorage.getItem(`puzzleCompleted_${puzzleNum}`) === "true";
+}
+/*
+function updatePuzzleListUI(puzzleNum) {
+    let title = `Codeword Handwriting Puzzle — #${puzzleNum}`;
+
+    if (isPuzzleCompleted(puzzleNum)) {
+        title += `<span style="color:green;">✓</span>`;
+    }
+    
+    dei("puzzleTitle").textContent = title;
+    }
+    */
+function updatePuzzleListUI(puzzleNum) {
+    let title = `Codeword Handwriting Puzzle — #${puzzleNum}`;
+
+    if (isPuzzleCompleted(puzzleNum)) {
+        title += ` <span style="color:green;">✓</span>`;
+    }
+    
+    dei("puzzleTitle").innerHTML = title;
+}
+
+/* auto save 
+setInterval(() => {
+    savePuzzleState(currentPuzzleNumber);
+}, 3000);
+*/

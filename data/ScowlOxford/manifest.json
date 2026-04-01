@@ -1,7 +1,13 @@
 {
-  "files": [
-      "ScowlOxford/puzzleData-SO-001-010.json",
-      "ScowlOxford/puzzleData-SO-011-040.json",
-      "ScowlOxford/puzzleData-SO-041-075.json"     
-  ]
+    "files": [
+	"ScowlOxford/puzzleData-SO-001-010.json",
+	"ScowlOxford/puzzleData-SO-011-040.json",
+	"ScowlOxford/puzzleData-SO-041-075.json",
+	"ScowlOxford/puzzleData-SO-076-100.json",
+	"ScowlOxford/puzzleData-SO-200-225.json",
+	"ScowlOxford/puzzleData-SO-176-199.json",
+	"ScowlOxford/puzzleData-SO-151-175.json",
+	"ScowlOxford/puzzleData-SO-126-150.json",
+	"ScowlOxford/puzzleData-SO-101-125.json"
+    ]
 }

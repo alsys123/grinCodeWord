@@ -79,9 +79,13 @@
 	<button id="enableDictionaryBtn">Enable Dictionary Lookup</button>
       </div>
       <div class="help-buttons">
+
+	<div class="help-title-info">Help Information</div>
+
 	<button data-help="drawing">Drawing Guide</button>
 	<button data-help="letters">Letter Shapes</button>
 	<button data-help="joiners">Joiner Tool</button>
+	<button data-help="saving">Saving Puzzle</button>
       </div>
     </div>
 
@@ -91,9 +95,17 @@
       <!-- your key -->
       <!-- your used letters -->
     </div>
-
+<!--
  <div id="dictionaryPanel" class="hidden dictionary-popup">
     <button id="dictCloseBtn" class="dict-close">×</button>
+    <div id="dictionaryContent"></div>
+</div>
+ -->
+ <div id="dictionaryPanel" class="hidden dictionary-popup">
+    <div id="dictDragHandle" class="dict-header">
+        <span>Dictionary Lookup</span>
+        <button id="dictCloseBtn" class="dict-close">×</button>
+    </div>
     <div id="dictionaryContent"></div>
 </div>
 

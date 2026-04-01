@@ -31,7 +31,7 @@
   top: 50px;
   left: 50%;
   transform: translateX(-50%);
-  width: 320px;
+  width: 425px; /*was 320 */
   background: #fff;
   border: 2px solid #333;
   border-radius: 8px;
@@ -197,6 +197,19 @@ body.dictionaryLookup-enabled::before {
     z-index: 2000;
 }
 
+.dict-header {
+    background: #333;
+    color: white;
+    padding: 8px 12px;
+    cursor: move;              /* ⭐ indicates draggable */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;         /* ⭐ prevents text selection while dragging */
+    border-radius: 6px 6px 0 0;
+    width: 75%;
+}
+
 .dict-close {
     all: unset;
     position: absolute;
@@ -214,85 +227,11 @@ body.dictionaryLookup-enabled::before {
     transform: scale(1.2);
 }
 
-/*
-#enableDictionaryBtn {
-    bottom: 15%;
-    margin-top: 0px;
-    width: 120px;
-    padding: 0px;
-    background: #0077cc;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    font-size: 15px;
-    cursor: pointer;
-    font-weight: 600;
-    position: absolute;
+.dict-highlight {
+    background: #ffeb99 !important;   /* soft yellow */
+    outline: 2px solid #d4a300;
+    border-radius: 10px;
 }
-
-#enableDictionaryBtn:hover {
-      background: #005fa3;
-}
-
-#enableDrawingBtn {
-
-    bottom: 15%;
-    left: 175px;
-    padding: 0px;
-    background: brown;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    font-size: 15px;
-    cursor: pointer;
-    font-weight: 600;
-    position: absolute;
-
-}
-
-#enableDrawingBtn:hover {
-      background: #005fa3;
-}
-
-
-#fillAllBtn {
-        bottom: 10%;
-    left: 40%;
-    padding: 0px;
-    background: green;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    font-size: 15px;
-    cursor: pointer;
-    font-weight: 600;
-    position: absolute;
-
-}
-
-#fillAllBtn:hover {
-      background: #005fa3;
-}
-
-#checkBtn {
-    bottom: 15%;
-    margin-top: 0px;
-    width: 120px;
-    padding: 0px;
-    background: #0077cc;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    font-size: 15px;
-    cursor: pointer;
-    font-weight: 600;
-    position: absolute;
-}
-
-#checkBtn:hover {
-      background: #005fa3;
-}
-*/
 
 #enableDictionaryBtn { background: #0077cc; color: white; }
 #enableDrawingBtn    { background: brown;   color: white; }
@@ -318,4 +257,10 @@ body.dictionaryLookup-enabled::before {
 
 .help-actions button:hover {
   background: #ddd;
+}
+
+.help-title-info {
+    font-weight: bold;
+    margin-bottom: 6px;
+    text-align: center;
 }
