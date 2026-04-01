@@ -200,8 +200,9 @@ function setupDoubleTap(cellData) {
         cellData.lastTap = now;
     };
 
-    cellData.cell.addEventListener('touchend', handler);
-    cellData.cell.addEventListener('click', handler);
+  //  cellData.cell.addEventListener('touchend', handler);
+   // cellData.cell.addEventListener('click', handler);
+	cellData.cell.addEventListener('pointerup', handler);
 }//setupDoubleTap
 
 function clearCell(cellData) {
