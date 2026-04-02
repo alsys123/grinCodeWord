@@ -198,6 +198,34 @@ function makeDictionaryPopupDraggable() {
         isDragging = false;
         document.body.style.userSelect = "";
     });
+    
+    // ---- iPAD / TOUCH SUPPORT ----
+    handle.addEventListener("touchstart", (e) => {
+        isDragging = true;
+        panel.style.transform = "none";
+
+        const touch = e.touches[0];
+        const rect = panel.getBoundingClientRect();
+        offsetX = touch.clientX - rect.left;
+        offsetY = touch.clientY - rect.top;
+
+        e.preventDefault(); // prevents Safari from scrolling instead of dragging
+    }, { passive: false });
+
+    document.addEventListener("touchmove", (e) => {
+        if (!isDragging) return;
+
+        const touch = e.touches[0];
+        panel.style.left = (touch.clientX - offsetX) + "px";
+        panel.style.top  = (touch.clientY - offsetY) + "px";
+
+        e.preventDefault(); // required for iPad dragging
+    }, { passive: false });
+
+    document.addEventListener("touchend", () => {
+        isDragging = false;
+    });
+}
 }
 
 function clearDictionaryHighlights() {
