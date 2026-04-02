@@ -226,7 +226,7 @@ function makeDictionaryPopupDraggable() {
         isDragging = false;
     });
 }
-}
+
 
 function clearDictionaryHighlights() {
     document.querySelectorAll(".dict-highlight").forEach(el =>
