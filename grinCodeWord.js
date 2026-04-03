@@ -913,6 +913,7 @@ function loadPuzzle(id) {
     updatePuzzleNavButtons(id);
 
 
+    dei("status").textContent = `Puzzle ${id} Loaded.`;
 
 }//loadPuzzle
 

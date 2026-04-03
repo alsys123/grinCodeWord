@@ -16,7 +16,13 @@ document.getElementById("helpBtn").addEventListener("click", () => {
     toggleHelp(true);
 });
 
+
 document.getElementById("helpCloseBtn").addEventListener("click", () => {
+    toggleHelp(false);
+});
+
+document.getElementById("helpCloseBtn").addEventListener("pointerup", (e) => {
+//    e.stopPropagation();  // prevent drag logic
     toggleHelp(false);
 });
 
