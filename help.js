@@ -55,9 +55,7 @@ function loadHelpContent(topic) {
     if (topic === "letters") {
 	content.innerHTML = `
       <h3>Letter Shapes</h3>
-      <p>Draw letters using simple, clean strokes. Avoid cursive or loops.</p>
-      <img src="help/letters2.png" style="width:100%;border:1px solid #ccc;">
-    `;
+      <p>Draw letters using simple, clean strokes. Avoid cursive or loops.`;
     }
 
     if (topic === "joiners") {
@@ -136,3 +134,79 @@ document.getElementById("enableDictionaryBtn").addEventListener("click", () => {
     // ⭐ THIS is where the toggle goes
     document.body.classList.toggle("dictionaryLookup-enabled", dictionaryLookupEnabled);
 });
+
+// ?? one day ... generalize this and put it in utils .. so it can be re-useable.
+function makeHelpPopupDraggable() {
+    const panel = document.getElementById("helpPanel");
+    const handle = document.getElementById("helpDragHandle");
+
+    let offsetX = 0;
+    let offsetY = 0;
+    let isDragging = false;
+
+    
+    function freezePosition() {
+        const rect = panel.getBoundingClientRect();
+        panel.style.left = rect.left + "px";
+        panel.style.top  = rect.top + "px";
+//        panel.style.transform = "none";   // remove centering AFTER freezing
+    }
+    
+    
+    handle.addEventListener("mousedown", (e) => {
+        isDragging = true;
+
+        // Remove centering transform so dragging works naturally
+//        panel.style.transform = "none";
+
+        freezePosition();   // ⭐ prevents the jump
+        panel.style.transform = "none";
+	
+        const rect = panel.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+
+        document.body.style.userSelect = "none";
+    });
+
+    document.addEventListener("mousemove", (e) => {
+        if (!isDragging) return;
+
+        panel.style.left = (e.clientX - offsetX) + "px";
+        panel.style.top  = (e.clientY - offsetY) + "px";
+    });
+
+    document.addEventListener("mouseup", () => {
+        isDragging = false;
+        document.body.style.userSelect = "";
+    });
+    
+    // ---- iPAD / TOUCH SUPPORT ----
+    handle.addEventListener("touchstart", (e) => {
+        isDragging = true;
+
+	freezePosition();   // ⭐ prevents the jump
+        panel.style.transform = "none";
+
+        const touch = e.touches[0];
+        const rect = panel.getBoundingClientRect();
+        offsetX = touch.clientX - rect.left;
+        offsetY = touch.clientY - rect.top;
+
+        e.preventDefault(); // prevents Safari from scrolling instead of dragging
+    }, { passive: false });
+
+    document.addEventListener("touchmove", (e) => {
+        if (!isDragging) return;
+
+        const touch = e.touches[0];
+        panel.style.left = (touch.clientX - offsetX) + "px";
+        panel.style.top  = (touch.clientY - offsetY) + "px";
+
+        e.preventDefault(); // required for iPad dragging
+    }, { passive: false });
+
+    document.addEventListener("touchend", () => {
+        isDragging = false;
+    });
+}

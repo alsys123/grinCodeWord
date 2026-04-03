@@ -63,9 +63,9 @@
     <!--    <div id="helpPanel" class="hidden"></div> -->
 
     <div id="helpPanel" class="help hidden">
-      <div class="help-header">
-	<h2>Help & Settings</h2>
-	<button id="helpCloseBtn">✕</button>
+      <div id="helpDragHandle" class="help-header">
+	<span>Help & Settings</span>
+	<button id="helpCloseBtn" class="help-close">✕</button>
       </div>
       
       <div class="help-content">
@@ -77,6 +77,7 @@
 	<button id="fillAllBtn">Fill All Answers</button>
 	<button id="enableDrawingBtn">Enable Drawing Mode</button>
 	<button id="enableDictionaryBtn">Enable Dictionary Lookup</button>
+	<button id="resetPuzzleBtn">Reset Puzzle</button>
       </div>
       <div class="help-buttons">
 
@@ -118,9 +119,9 @@
 
     <!--  <script src="puzzleData.js"></script> -->
     
+    <script src="utils.js"></script>
     <script src="dictionary.js"></script>
     <script src="help.js"></script>
-    <script src="utils.js"></script>
     <script src="layout.js"></script>
     <script src="grinCodeWord.js"></script>
     <script src="joiner.js"></script>

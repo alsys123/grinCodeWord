@@ -160,10 +160,19 @@ function showDictionaryPopup(wordH, defH, wordV, defV) {
     panel.classList.remove("hidden");
 }
 
-document.getElementById("dictCloseBtn").addEventListener("click", () => {
-    document.getElementById("dictionaryPanel").classList.add("hidden");
+const closeBtn = dei("dictCloseBtn");
+
+closeBtn.addEventListener("click", () => {
+    dei("dictionaryPanel").classList.add("hidden");
     clearDictionaryHighlights(); //clear all the old ones
 
+});
+
+
+closeBtn.addEventListener("pointerup", (e) => {
+    e.stopPropagation();  // prevent drag logic
+    dei("dictionaryPanel").classList.add("hidden");
+    clearDictionaryHighlights();
 });
 
 function makeDictionaryPopupDraggable() {
@@ -174,12 +183,24 @@ function makeDictionaryPopupDraggable() {
     let offsetY = 0;
     let isDragging = false;
 
+    
+    function freezePosition() {
+        const rect = panel.getBoundingClientRect();
+        panel.style.left = rect.left + "px";
+        panel.style.top  = rect.top + "px";
+//        panel.style.transform = "none";   // remove centering AFTER freezing
+    }
+    
+    
     handle.addEventListener("mousedown", (e) => {
         isDragging = true;
 
         // Remove centering transform so dragging works naturally
-        panel.style.transform = "none";
+//        panel.style.transform = "none";
 
+        freezePosition();   // ⭐ prevents the jump
+        panel.style.transform = "none";
+	
         const rect = panel.getBoundingClientRect();
         offsetX = e.clientX - rect.left;
         offsetY = e.clientY - rect.top;
@@ -202,6 +223,8 @@ function makeDictionaryPopupDraggable() {
     // ---- iPAD / TOUCH SUPPORT ----
     handle.addEventListener("touchstart", (e) => {
         isDragging = true;
+
+	freezePosition();   // ⭐ prevents the jump
         panel.style.transform = "none";
 
         const touch = e.touches[0];

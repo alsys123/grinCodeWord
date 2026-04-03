@@ -14,7 +14,7 @@ let dictionaryLookupEnabled = false;
   PUZZLES = await response.json();
   }
 */
-let currentPuzzleNumber = 1;
+let gCurrentPuzzleNumber = 1;
 
 let DICT = null;
 
@@ -166,7 +166,7 @@ function applyStarters() {
 	    propagateLetter(target.number, h.letter, true); // NEW
 
 	    markAlphabetUsed(h.letter);
-//	    savePuzzleState(currentPuzzleNumber);
+//	    savePuzzleState();
 	    
         }
     });
@@ -197,7 +197,7 @@ function setupDoubleTap(cellData) {
 		
 		//		clearCell(cellData);
 		propagateClear(cellData.number);
-		savePuzzleState(currentPuzzleNumber);
+		savePuzzleState();
             }
         }
         cellData.lastTap = now;
@@ -500,7 +500,7 @@ async function recognizeCell(cellData) {
 
         cellData.recognized = true;
 
-	savePuzzleState(currentPuzzleNumber);
+	savePuzzleState();
 	
     } catch (err) {
         console.error(err);
@@ -581,12 +581,8 @@ function checkAnswers() {
         }
     });
 
-    if (isPuzzleFullyCorrect()) {
-	markPuzzleCompleted(currentPuzzleNumber);
-	updatePuzzleListUI(currentPuzzleNumber);
-	
-    }
-
+    checkAndMarkPuzzleFullyCorrect();
+    
 }//checkAnswers
 
 function showAlertWithDrawing(canvas) {
@@ -648,7 +644,7 @@ function fillAllAnswers() {
             // Fill grid cell
             placeLetter(cellData, correctLetter, isStarter);
             cellData.recognized = true;
-//	    savePuzzleState(currentPuzzleNumber);
+//	    savePuzzleState();
         }
     }
 
@@ -683,7 +679,7 @@ function propagateLetter(number, letter, isStarter = false) {
 	if (cd.number === number && !cd.starter) {
 	    placeLetter(cd, letter,  isStarter);
 	    cd.recognized = true;
-	    savePuzzleState(currentPuzzleNumber);
+	    savePuzzleState();
 	}
     });
     
@@ -865,6 +861,10 @@ function isLetterStillUsed(letter) {
 
 function loadPuzzle(id) {
 
+    gCurrentPuzzleNumber = id;
+    
+//    cLog("Let's load this puzzle: " , id);
+    
     const puzzle = PUZZLES[id];
     if (!puzzle) {
 	console.error("Puzzle not found:", id);
@@ -892,13 +892,12 @@ function loadPuzzle(id) {
     //  buildGrid();
     applyStarters();
 
-    currentPuzzleNumber = id;
 
-    // ⭐ Restore saved progress
-    restorePuzzleState(id);
+    // ⭐ Restore saved progress .. use global: gCurrentPuzzleNumber
+    restorePuzzleState();
     
-    // ⭐ Update completion checkmark
-    updatePuzzleListUI(id);
+    // ⭐ Update completion checkmark .. use global: gCurrentPuzzleNumber
+    updatePuzzleListUI();
 
     /*
     let title = `Codeword Handwriting Puzzle — #${id}`;
@@ -979,7 +978,10 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("puzzleInput").value = 1;
     loadPuzzle(1);                   // now safe to load
+
     makeDictionaryPopupDraggable();
+    makeHelpPopupDraggable();
+
 });
 
 
@@ -1054,7 +1056,7 @@ gridEl.addEventListener('click', (e) => {
     placeLetter(cellData, selectedLetter, false);
     propagateLetter(cellData.number, selectedLetter);
     cellData.recognized = true;
-    savePuzzleState(currentPuzzleNumber);
+    savePuzzleState();
     
     // Clear alphabet selection
     document.querySelectorAll('.alpha-letter').forEach(el =>
@@ -1071,19 +1073,28 @@ const nextBtn = document.getElementById("nextPuzzle");
 
 function loadPuzzleIfExists(id) {
     if (PUZZLES[id]) {
-	puzzleInput.value = id;
+	puzzleInput.value = id; // ⭐ THIS is where the input changes
 	loadPuzzle(id);
     }
 }
 
 prevBtn.addEventListener("click", () => {
     const id = parseInt(puzzleInput.value || "1", 10);
-    loadPuzzleIfExists(id - 1);
+
+    const prevPuzzle = id - 1;
+//    const prevPuzzle = id;
+
+    loadPuzzleIfExists(prevPuzzle);
+
 });
 
 nextBtn.addEventListener("click", () => {
     const id = parseInt(puzzleInput.value || "1", 10);
-    loadPuzzleIfExists(id + 1);
+
+    const nextPuzzle = id + 1;
+//    const nextPuzzle = id;
+    loadPuzzleIfExists(nextPuzzle);
+
 });
 
 // see whether the buttons should be enabled/disabled
@@ -1099,34 +1110,38 @@ function updatePuzzleNavButtons(currentId) {
 
 // **** memory save and restore ***
 
-function savePuzzleState(puzzleNum) {
+function savePuzzleState() {
+    const puzzleNum = gCurrentPuzzleNumber;
+
+    if (isPuzzleCompleted(puzzleNum)) return;
+    
+//    cLog("savePuzzleState",puzzleNum);
+    
     const state = cells.map(cd => {
         const letter = cd.cell.querySelector(".letter")?.textContent || "";
         return letter;
     });
 
-    localStorage.setItem(`puzzleState_${puzzleNum}`, JSON.stringify(state));
+    const saveItem = JSON.stringify(state);
+//    localStorage.setItem(`puzzleState_${puzzleNum}`, JSON.stringify(state));
+    localStorage.setItem(`puzzleState_${puzzleNum}`, saveItem);
+
+//    cLog("Saved: ", saveItem);
+    
 }
-/*
-function restorePuzzleState(puzzleNum) {
+
+function restorePuzzleState() {
+    const puzzleNum = gCurrentPuzzleNumber;
+    
+    if (isPuzzleCompleted(puzzleNum)) return;
+
+//    cLog("restorePuzzleState",puzzleNum);
+    
     const saved = localStorage.getItem(`puzzleState_${puzzleNum}`);
     if (!saved) return;
 
-    const letters = JSON.parse(saved);
-
-    letters.forEach((ltr, i) => {
-        if (!ltr) return;
-        const cd = cells[i];
-        const letterDiv = cd.cell.querySelector(".letter");
-        if (letterDiv) letterDiv.textContent = ltr;
-    });
-    }
-*/
-
-function restorePuzzleState(puzzleNum) {
-    const saved = localStorage.getItem(`puzzleState_${puzzleNum}`);
-    if (!saved) return;
-
+//    cLog("..restoring", saved);
+    
     const letters = JSON.parse(saved);
 
     letters.forEach((ltr, i) => {
@@ -1137,27 +1152,25 @@ function restorePuzzleState(puzzleNum) {
         placeLetter(cd, ltr, false);
         cd.recognized = true;
     });
+
+//    cLog("..Done restoring");
+    
 }
 
-/*
-function isPuzzleComplete() {
-    return cells.every(cd => {
-        const letter = cd.cell.querySelector(".letter")?.textContent || "";
-        const solution = cd.solution || "";
-        return letter === solution;
-    });
-    }
-*/
-/*
-function isPuzzleFullyCorrect() {
-    return cells.every(cd => {
-        const letter = cd.cell.querySelector(".letter")?.textContent || "";
-        const correct = solutionMap[cd.number];
-        return letter === correct;
-    });
-    }
-*/
 
+function checkAndMarkPuzzleFullyCorrect() {
+    
+    if (isPuzzleFullyCorrect()) {
+	markPuzzleCompleted();
+	// no longer need local storage
+	localStorage.removeItem(`puzzleState_${gCurrentPuzzleNumber}`);
+    } else {
+	unMarkPuzzleCompleted();
+    }
+
+    updatePuzzleListUI();
+}
+    
 function isPuzzleFullyCorrect() {
     let allCorrect = true;
 
@@ -1177,36 +1190,42 @@ function isPuzzleFullyCorrect() {
     return allCorrect;
 }
 
-function markPuzzleCompleted(puzzleNum) {
-    localStorage.setItem(`puzzleCompleted_${puzzleNum}`, "true");
+function markPuzzleCompleted() {
+    localStorage.setItem(`puzzleCompleted_${gCurrentPuzzleNumber}`, "true");
+}
+
+function unMarkPuzzleCompleted() {
+    localStorage.setItem(`puzzleCompleted_${gCurrentPuzzleNumber}`, "false");
 }
 
 function isPuzzleCompleted(puzzleNum) {
     return localStorage.getItem(`puzzleCompleted_${puzzleNum}`) === "true";
 }
-/*
-function updatePuzzleListUI(puzzleNum) {
+
+function updatePuzzleListUI() {
+    const puzzleNum = gCurrentPuzzleNumber;
     let title = `Codeword Handwriting Puzzle — #${puzzleNum}`;
 
     if (isPuzzleCompleted(puzzleNum)) {
-        title += `<span style="color:green;">✓</span>`;
-    }
-    
-    dei("puzzleTitle").textContent = title;
-    }
-    */
-function updatePuzzleListUI(puzzleNum) {
-    let title = `Codeword Handwriting Puzzle — #${puzzleNum}`;
-
-    if (isPuzzleCompleted(puzzleNum)) {
-        title += ` <span style="color:green;">✓</span>`;
-    }
+//        title += ` <span style="color:green;">✓</span>`;
+	title += ` <span style="color:green; font-size:1.8em; line-height:0.8;">✓</span>`;    }
     
     dei("puzzleTitle").innerHTML = title;
 }
 
 /* auto save 
 setInterval(() => {
-    savePuzzleState(currentPuzzleNumber);
+    savePuzzleState(gCurrentPuzzleNumber);
 }, 3000);
 */
+
+
+dei("resetPuzzleBtn").addEventListener("click", resetPuzzle);
+
+// reset puzzle to original state
+function resetPuzzle() {
+    localStorage.setItem(`puzzleCompleted_${gCurrentPuzzleNumber}`, "false");
+    localStorage.removeItem(`puzzleState_${gCurrentPuzzleNumber}`);
+
+    loadPuzzle(gCurrentPuzzleNumber);
+}

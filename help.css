@@ -44,11 +44,20 @@
   display: none;
 }
 
+
 .help-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: move;              /* ⭐ indicates draggable */
+    background: #333;
+    color: white;
+    user-select: none;         /* ⭐ prevents text selection while dragging */
+    width: 75%;
+    padding: 4px 10px;
+    border-radius: 6px 6px 0 0;
 }
+
 
 .help-content {
   margin-top: 10px;
@@ -197,6 +206,7 @@ body.dictionaryLookup-enabled::before {
     z-index: 2000;
 }
 
+
 .dict-header {
     background: #333;
     color: white;
@@ -237,11 +247,13 @@ body.dictionaryLookup-enabled::before {
 #enableDrawingBtn    { background: brown;   color: white; }
 #checkBtn            { background: #0077cc; color: white; }
 #fillAllBtn          { background: green;   color: white; }
+#resetPuzzleBtn      { background: black;   color: white; }
 
 #enableDictionaryBtn:hover { background: #005fa3; }
 #enableDrawingBtn:hover    { background: #8b0000; }
 #checkBtn:hover            { background: #005fa3; }
 #fillAllBtn:hover          { background: #006600; }
+#resetPuzzleBtn:hover      { background: #005fa3; }
 
 .help-actions button {
   padding: 10px 12px;
@@ -263,4 +275,21 @@ body.dictionaryLookup-enabled::before {
     font-weight: bold;
     margin-bottom: 6px;
     text-align: center;
+}
+
+.help-close {
+    all: unset;
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #444;
+    padding: 4px;
+}
+
+.help-close:hover {
+    color: #000;
+    transform: scale(1.2);
 }
