@@ -33,3 +33,18 @@ https://sites.google.com/view/grinCodeWord/Main
 Entry point is:
 
 "https://alsys123.github.io/grinCodeWord/index.html"
+
+
+
+for export - avoids the prompt...
+
+exportBtn.addEventListener('click', () => {
+    canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = "image.png";
+        link.click();
+        URL.revokeObjectURL(url);
+    }, "image/png");
+});
